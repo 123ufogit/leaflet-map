@@ -2,13 +2,9 @@
   style.css version 0.9.0
   Updated: 2026-01-12
   Mobile Optimization Level: 1
-  Changes:
-    - Sidebar slide-in for mobile
-    - Larger tab buttons on mobile
-    - coordBox repositioned for mobile
-    - MiniMap hidden on small screens
 */
 
+/* ===== 全体 ===== */
 body { margin: 0; font-family: sans-serif; }
 
 /* ===== ヘッダー ===== */
@@ -115,6 +111,17 @@ body { margin: 0; font-family: sans-serif; }
   border-radius: 4px;
   font-size: 13px;
   z-index: 1000;
+}
+
+/* ============================================================
+   ★★★ Pannellum が表示されない原因はここ ★★★
+   pano-box の CSS が欠落していたため、枠が高さ0になっていた。
+   これを追加することで Pannellum が確実に表示される。
+   ============================================================ */
+.pano-box {
+  width: 300px;
+  height: 200px;
+  background: #000; /* 任意：枠が見えるように */
 }
 
 /* ===== スマホ最適化（Level 1） ===== */
