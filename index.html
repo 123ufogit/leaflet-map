@@ -1,0 +1,322 @@
+<!--
+Version: 0.8.1
+Date: 2026-01-12 10:30 JST
+Author: UFO
+
+Summary:
+- 2画面同期マップ（map1/map2）
+- マーカー追加・削除
+- サイドバー折りたたみ
+- 地名・座標検索
+- 航空写真・標高図レイヤー追加
+
+Changes:
+- map2 が表示されない問題を修正（TileLayer を map1/map2 で個別インスタンス化）
+- マーカー削除ボタンを追加
+- サイドバー折りたたみ UI を追加
+- 検索機能を 2画面同期に対応
+-->
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>多機能 Leaflet マップ（2画面同期版）</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Leaflet.Sync（地図同期） -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.sync/L.Map.Sync.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    /* ヘッダー */
+    #header {
+      padding: 8px 12px;
+      background: #2c3e50;
+      color: #ecf0f1;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    #header input {
+      margin-left: 10px;
+      padding: 4px;
+      width: 220px;
+    }
+
+    #header button {
+      padding: 4px 8px;
+      margin-left: 4px;
+    }
+
+    /* メインレイアウト */
+    #container {
+      display: flex;
+      height: calc(100vh - 40px);
+    }
+
+    /* サイドバー */
+    #sidebar {
+      width: 240px;
+      background: #f4f4f4;
+      border-right: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+      transition: width 0.3s;
+      position: relative;
+    }
+
+    #sidebar.collapsed {
+      width: 20px;
+    }
+
+    #toggleSidebar {
+      position: absolute;
+      top: 5px;
+      right: -15px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    #markerList li {
+      cursor: pointer;
+      margin-bottom: 6px;
+      padding: 4px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    #markerList li:hover {
+      background: #e0f7fa;
+    }
+
+    /* 2画面地図 */
+    #maps {
+      flex: 1;
+      display: flex;
+    }
+
+    #map1, #map2 {
+      flex: 1;
+    }
+
+    /* バージョン表示 */
+    .version-info {
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      line-height: 1.2;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ヘッダー（検索ボックス） -->
+  <div id="header">
+    多機能 Leaflet マップ（2画面同期）
+    <input type="text" id="searchBox" placeholder="地名または座標を入力">
+    <button id="searchBtn">検索</button>
+  </div>
+
+  <!-- サイドバー＋2画面 -->
+  <div id="container">
+    <div id="sidebar">
+      <button id="toggleSidebar">◀</button>
+      <h3>マーカー一覧</h3>
+      <ul id="markerList"></ul>
+    </div>
+
+    <div id="maps">
+      <div id="map1"></div>
+      <div id="map2"></div>
+    </div>
+  </div>
+
+  <script>
+    // -------- 1. 地図本体 --------
+    var map1 = L.map('map1', { center: [36.561, 136.656], zoom: 13 });
+    var map2 = L.map('map2', { center: [36.561, 136.656], zoom: 13 });
+
+    // -------- 2. ベースレイヤー（map1 用） --------
+    var osm1 = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    var gsiStd1 = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png');
+    var gsiPhoto1 = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg');
+    var gsiRelief1 = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/relief/{z}/{x}/{y}.png');
+
+    // -------- 3. ベースレイヤー（map2 用） --------
+    var osm2 = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    var gsiStd2 = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png');
+    var gsiPhoto2 = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg');
+    var gsiRelief2 = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/relief/{z}/{x}/{y}.png');
+
+    // map1 に追加
+    osm1.addTo(map1);
+
+    // map2 に追加
+    osm2.addTo(map2);
+
+    // レイヤーコントロール（map1）
+    L.control.layers({
+      "OSM": osm1,
+      "地理院標準": gsiStd1,
+      "航空写真": gsiPhoto1,
+      "標高図": gsiRelief1
+    }).addTo(map1);
+
+    // レイヤーコントロール（map2）
+    L.control.layers({
+      "OSM": osm2,
+      "地理院標準": gsiStd2,
+      "航空写真": gsiPhoto2,
+      "標高図": gsiRelief2
+    }).addTo(map2);
+
+    L.control.scale({ metric: true }).addTo(map1);
+    L.control.scale({ metric: true }).addTo(map2);
+
+    // -------- 4. 地図同期 --------
+    map1.sync(map2);
+    map2.sync(map1);
+
+    // -------- 5. マーカー管理 --------
+    var markers = [];
+
+    function addMarker(lat, lng) {
+      var marker1 = L.marker([lat, lng]).addTo(map1);
+      var marker2 = L.marker([lat, lng]).addTo(map2);
+
+      markers.push({ marker1, marker2, lat, lng });
+      updateMarkerList();
+    }
+
+    function updateMarkerList() {
+      var list = document.getElementById("markerList");
+      list.innerHTML = "";
+
+      markers.forEach(function(item, index) {
+        var li = document.createElement("li");
+
+        var text = document.createElement("span");
+        text.textContent = "Marker " + (index + 1) +
+          " (" + item.lat.toFixed(4) + ", " + item.lng.toFixed(4) + ")";
+        text.onclick = function() {
+          map1.setView([item.lat, item.lng], 15);
+          map2.setView([item.lat, item.lng], 15);
+        };
+
+        var del = document.createElement("button");
+        del.textContent = "削除";
+        del.style.marginLeft = "8px";
+        del.onclick = function() {
+          map1.removeLayer(item.marker1);
+          map2.removeLayer(item.marker2);
+          markers.splice(index, 1);
+          updateMarkerList();
+        };
+
+        li.appendChild(text);
+        li.appendChild(del);
+        list.appendChild(li);
+      });
+    }
+
+    // -------- 6. クリックで座標表示 --------
+    function showLatLngPopup(e, map) {
+      var lat = e.latlng.lat.toFixed(6);
+      var lng = e.latlng.lng.toFixed(6);
+
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent("緯度: " + lat + "<br>経度: " + lng)
+        .openOn(map);
+    }
+
+    map1.on('click', function(e) {
+      addMarker(e.latlng.lat, e.latlng.lng);
+      showLatLngPopup(e, map1);
+    });
+
+    map2.on('click', function(e) {
+      addMarker(e.latlng.lat, e.latlng.lng);
+      showLatLngPopup(e, map2);
+    });
+
+    // -------- 7. 検索機能 --------
+    function isLatLng(text) {
+      var parts = text.split(",");
+      if (parts.length !== 2) return false;
+      return !isNaN(parseFloat(parts[0])) && !isNaN(parseFloat(parts[1]));
+    }
+
+    function moveToLatLng(lat, lng) {
+      map1.setView([lat, lng], 15);
+      map2.setView([lat, lng], 15);
+    }
+
+    function searchPlace(query) {
+      var url = "https://nominatim.openstreetmap.org/search?format=json&q=" +
+        encodeURIComponent(query);
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (data.length === 0) {
+            alert("場所が見つかりませんでした");
+            return;
+          }
+          moveToLatLng(parseFloat(data[0].lat), parseFloat(data[0].lon));
+        });
+    }
+
+    document.getElementById("searchBtn").onclick = function() {
+      var text = document.getElementById("searchBox").value.trim();
+      if (text === "") return;
+
+      if (isLatLng(text)) {
+        var p = text.split(",");
+        moveToLatLng(parseFloat(p[0]), parseFloat(p[1]));
+      } else {
+        searchPlace(text);
+      }
+    };
+
+    // -------- 8. サイドバー折りたたみ --------
+    document.getElementById("toggleSidebar").onclick = function() {
+      var sb = document.getElementById("sidebar");
+      sb.classList.toggle("collapsed");
+      this.textContent = sb.classList.contains("collapsed") ? "▶" : "◀";
+    };
+
+    // -------- 9. バージョンコメントを地図上に表示 --------
+    function addVersionControl(map) {
+      var versionControl = L.control({ position: "bottomright" });
+
+      versionControl.onAdd = function() {
+        var div = L.DomUtil.create("div", "version-info");
+        div.innerHTML = "v0.8.1<br>2026-01-12 10:30 JST";
+        return div;
+      };
+
+      versionControl.addTo(map);
+    }
+
+    addVersionControl(map1);
+    addVersionControl(map2);
+  </script>
+</body>
+</html>
