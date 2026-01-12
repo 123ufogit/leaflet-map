@@ -1,0 +1,157 @@
+/*
+  style.css version 0.9.0
+  Updated: 2026-01-12
+  Mobile Optimization Level: 1
+  Changes:
+    - Sidebar slide-in for mobile
+    - Larger tab buttons on mobile
+    - coordBox repositioned for mobile
+    - MiniMap hidden on small screens
+*/
+
+body { margin: 0; font-family: sans-serif; }
+
+/* ===== ヘッダー ===== */
+#header {
+  padding: 8px 12px;
+  background: #2c3e50;
+  color: #ecf0f1;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#header input {
+  padding: 4px;
+  width: 220px;
+}
+
+#header button {
+  padding: 4px 8px;
+}
+
+/* スマホ用メニューボタン */
+.mobile-only {
+  display: none;
+}
+
+/* ===== レイアウト ===== */
+#container {
+  display: flex;
+  height: calc(100vh - 40px);
+}
+
+#sidebar {
+  width: 300px;
+  background: #f4f4f4;
+  border-right: 1px solid #ccc;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* ===== タブ ===== */
+.tab-buttons {
+  display: flex;
+  background: #ddd;
+  border-bottom: 1px solid #aaa;
+}
+
+.tab-buttons div {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+  border-right: 1px solid #aaa;
+}
+
+.tab-buttons div.active {
+  background: #fff;
+}
+
+.tab-content {
+  display: none;
+  padding: 10px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* ===== 写真カード ===== */
+.card {
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  padding: 6px;
+  border-radius: 4px;
+  background: #fff;
+  position: relative;
+  cursor: pointer;
+}
+
+.thumb {
+  width: 100%;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+/* ===== 地図 ===== */
+#map {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* ===== 座標表示 ===== */
+#coordBox {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  z-index: 1000;
+}
+
+/* ===== スマホ最適化（Level 1） ===== */
+@media (max-width: 600px) {
+
+  .mobile-only {
+    display: inline-block;
+    font-size: 20px;
+    margin-right: 10px;
+  }
+
+  #sidebar {
+    width: 80%;
+    transform: translateX(-100%);
+    position: absolute;
+    z-index: 2000;
+    transition: transform 0.3s ease;
+  }
+
+  #sidebar.open {
+    transform: translateX(0);
+  }
+
+  #header input {
+    width: 120px;
+  }
+
+  .tab-buttons div {
+    padding: 14px 6px;
+    font-size: 16px;
+  }
+
+  #coordBox {
+    bottom: 60px;
+  }
+
+  .leaflet-control-minimap {
+    display: none !important;
+  }
+}
