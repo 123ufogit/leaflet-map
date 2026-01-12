@@ -10,7 +10,7 @@ const GITHUB_REPO = "leaflet-map";
 const PHOTO_DIR = "photos";
 
 // GitHub API URL
-const API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${PHOTO_DIR}`;
+const API_URL = `https://api.github.com/${GITHUB_USER}/${GITHUB_REPO}/${PHOTO_DIR}`;
 
 // EXIF → 座標変換
 function toDecimal(dms) {
