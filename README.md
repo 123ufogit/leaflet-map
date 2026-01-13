@@ -2,6 +2,8 @@
 
 ここには Leaflet で表示する地図データを置きます。大きなファイルは Git LFS で管理してください。
 
+https://123ufogit.github.io/leaflet-map/
+
 簡単な使い方
 1. Leaflet を読み込む（公式 CDN を利用）
 2. data フォルダにある GeoJSON やタイルファイルを参照して表示します
