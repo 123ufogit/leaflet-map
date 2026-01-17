@@ -61,11 +61,13 @@ tabPhoto.onclick = () => {
 const layerGSIstd = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
   { attribution: "地理院タイル（標準）" }
+  maxZoom: 25
 );
 
 const map = L.map("map", {
   center: [37.303254, 136.915478],
   zoom: 15,
+  maxZoom: 25
   layers: [layerGSIstd]
 });
 
@@ -73,11 +75,13 @@ const map = L.map("map", {
 const layerOSM = L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   { attribution: "© OpenStreetMap contributors" }
+  maxZoom: 25
 );
 
 const layerGSIort = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
   { attribution: "地理院タイル（空中写真）" }
+  maxZoom: 25
 );
 
 L.control.layers({
