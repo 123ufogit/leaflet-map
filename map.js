@@ -175,4 +175,4 @@ fetch("data/points.geojson")
   });
 
 // レイヤコントロールに登録
-L.control.layers(null, { "周辺施設": layerShuuhen }).addTo(map);
+L.control.layers(null, { "周辺施設": layerShuuhen }, { position: "bottomleft" }).addTo(map);
