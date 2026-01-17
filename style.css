@@ -74,23 +74,6 @@ body { margin: 0; font-family: sans-serif; }
   display: block;
 }
 
-/* ===== 写真カード ===== */
-.card {
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  padding: 6px;
-  border-radius: 4px;
-  background: #fff;
-  position: relative;
-  cursor: pointer;
-}
-
-.thumb {
-  width: 100%;
-  border-radius: 4px;
-  margin-bottom: 6px;
-}
-
 /* ===== 地図 ===== */
 #map {
   flex: 1;
@@ -111,15 +94,6 @@ body { margin: 0; font-family: sans-serif; }
   border-radius: 4px;
   font-size: 13px;
   z-index: 1000;
-}
-
-/* ============================================================
-   ★★★ Pannellum が表示されない原因はここ ★★★
-   ============================================================ */
-.pano-box {
-  width: 300px;
-  height: 200px;
-  background: #000; /* 任意：枠が見えるように */
 }
 
 /* MiniMap の位置を少し上にずらす */
