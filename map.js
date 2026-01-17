@@ -385,7 +385,7 @@ L.control.layers(
   null,
   {
     "TLSエリア": layerTLS,
-    "20mメッシュ": layerSCAN,
+    "スキャン地点": layerSCAN,
     "森林調査": layerCSV,
     "20mメッシュ": layerMesh20,
     "周辺施設": layerShuuhen
