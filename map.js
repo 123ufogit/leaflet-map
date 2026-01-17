@@ -158,5 +158,5 @@ document.getElementById("locateBtn").onclick = () => {
 };
 
 map.on("locationerror", () => {
-  alert("現在地を取得できませんでした（HTTPS が必要です）");
+  alert("現在地を取得できませんでした");
 });
