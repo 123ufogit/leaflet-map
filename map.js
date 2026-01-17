@@ -161,7 +161,6 @@ map.on("locationerror", () => {
 });
 
 /* ===== 外部ポイントレイヤ（周辺施設） ===== */
-
 // レイヤグループ（ON/OFF 可能）
 const layerShuuhen = L.layerGroup().addTo(map);
 
@@ -169,9 +168,15 @@ const layerShuuhen = L.layerGroup().addTo(map);
 fetch("data/points.geojson")
   .then(res => res.json())
   .then(json => {
-    L.geoJSON(json, {
-      pointToLayer: (feature, latlng) => L.marker(latlng)
-    }).eachLayer(layer => layerShuuhen.addLayer(layer));
+L.geoJSON(json, {
+  pointToLayer: (feature, latlng) => {
+    return L.marker(latlng).bindPopup(
+      Object.entries(feature.properties)
+        .map(([k, v]) => `<b>${k}</b>: ${v}`)
+        .join("<br>")
+    );
+  }
+}).addLayer(layerShuuhen);
   });
 
 // レイヤコントロールに登録
