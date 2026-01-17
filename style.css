@@ -74,23 +74,6 @@ body { margin: 0; font-family: sans-serif; }
   display: block;
 }
 
-/* ===== 写真カード ===== */
-.card {
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  padding: 6px;
-  border-radius: 4px;
-  background: #fff;
-  position: relative;
-  cursor: pointer;
-}
-
-.thumb {
-  width: 100%;
-  border-radius: 4px;
-  margin-bottom: 6px;
-}
-
 /* ===== 地図 ===== */
 #map {
   flex: 1;
@@ -102,7 +85,7 @@ body { margin: 0; font-family: sans-serif; }
 /* ===== 座標表示 ===== */
 #coordBox {
   position: absolute;
-  bottom: 20px;        /* 下からの距離 */
+  bottom: 10px;        /* 下からの距離 */
   left: 50%;           /* 画面中央に寄せる */
   transform: translateX(-50%); /* 中央揃え */
   background: rgba(0,0,0,0.6);
@@ -111,15 +94,6 @@ body { margin: 0; font-family: sans-serif; }
   border-radius: 4px;
   font-size: 13px;
   z-index: 1000;
-}
-
-/* ============================================================
-   ★★★ Pannellum が表示されない原因はここ ★★★
-   ============================================================ */
-.pano-box {
-  width: 300px;
-  height: 200px;
-  background: #000; /* 任意：枠が見えるように */
 }
 
 /* MiniMap の位置を少し上にずらす */
@@ -144,7 +118,7 @@ body { margin: 0; font-family: sans-serif; }
 /* ボタンの見た目（Google Maps 風） */
 .locate-btn {
   position: absolute;
-  bottom: 150px;
+  bottom: 120px;
   right: 10px;
 
   width: 35px;
@@ -205,16 +179,9 @@ body { margin: 0; font-family: sans-serif; }
     transform: translateX(0);
   }
 
-  #header input {
-    width: 120px;
-  }
-
   .tab-buttons div {
     padding: 14px 6px;
     font-size: 16px;
   }
 
-  #coordBox {
-    bottom: 60px;
-  }
 }

@@ -1,0 +1,30 @@
+/*
+  photo.css version 0.1.0
+  写真管理（カード・サムネイル・パノラマ表示）専用
+*/
+
+/* ===== 写真カード ===== */
+.card {
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  padding: 6px;
+  border-radius: 4px;
+  background: #fff;
+  position: relative;
+  cursor: pointer;
+}
+
+.thumb {
+  width: 100%;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+/* ===== パノラマ表示（Pannellum） ===== */
+.pano-box {
+  width: 300px;
+  height: 200px;
+  background: #000; /* デバッグ用 */
+}
+
+/* 今後追加される写真管理 UI（削除ボタン・EXIF 表示など）もここに追加 */
