@@ -295,7 +295,7 @@ const girth = parseFloat(row["幹周"]); // 幹周(cm)
 const diameter = girth / Math.PI;      // 直径(cm)
 
 // ★ マーカー半径(px)に変換（倍率は調整可能）
-const markerRadius = diameter * 0.05;   // 例：0.2px/cm
+const markerRadius = diameter * 0.1;   // 例：0.2px/cm
         
         // 樹種による色分け
         let color;
