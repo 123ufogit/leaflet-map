@@ -102,14 +102,15 @@ body { margin: 0; font-family: sans-serif; }
 /* ===== 座標表示 ===== */
 #coordBox {
   position: absolute;
-  bottom: 10px;
-  left: 30%;
+  bottom: 20px;        /* 下からの距離 */
+  left: 50%;           /* 画面中央に寄せる */
+  transform: translateX(-50%); /* 中央揃え */
   background: rgba(0,0,0,0.6);
   color: #fff;
   padding: 6px 10px;
   border-radius: 4px;
   font-size: 13px;
-  z-index: 300;
+  z-index: 1000;
 }
 
 /* ============================================================
@@ -146,8 +147,8 @@ body { margin: 0; font-family: sans-serif; }
   bottom: 150px;
   right: 10px;
 
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
 
   background: white;
   border-radius: 50%;
