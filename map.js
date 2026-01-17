@@ -347,9 +347,9 @@ loadCSV();
 L.control.layers(
   null,
   {
-    "TLSエリア": layerTLS
-    "森林調査": layerCSV
-    "周辺施設": layerShuuhen,
+    "TLSエリア": layerTLS,
+    "森林調査": layerCSV,
+    "周辺施設": layerShuuhen
   },
   { position: "bottomleft" }
 ).addTo(map);
