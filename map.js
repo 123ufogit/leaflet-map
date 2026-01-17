@@ -61,11 +61,12 @@ tabPhoto.onclick = () => {
 const layerGSIstd = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
   { attribution: "地理院タイル（標準）" }
+    maxZoom: 22
 );
 
 const map = L.map("map", {
   center: [37.303254, 136.915478],
-  zoom: 14,
+  zoom: 15,
   layers: [layerGSIstd]
 });
 
@@ -73,11 +74,13 @@ const map = L.map("map", {
 const layerOSM = L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   { attribution: "© OpenStreetMap contributors" }
+    maxZoom: 22
 );
 
 const layerGSIort = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
   { attribution: "地理院タイル（空中写真）" }
+    maxZoom: 22
 );
 
 L.control.layers({
@@ -157,12 +160,18 @@ updateCenterInfo();
 
 /* ===== 現在地 ===== */
 document.getElementById("locateBtn").onclick = () => {
-  map.locate({ setView: true, maxZoom: 16 });
+  map.locate({ setView: true, maxZoom: 17 });
 };
 
 map.on("locationerror", () => {
   alert("現在地を取得できませんでした");
 });
+
+/* ===== 縮尺 ===== */
+L.control.scale({
+  imperial: false,   // メートル法のみ
+  maxWidth: 200
+}).addTo(map);
 
 /* ===== レイヤグループ ===== */
 const layerShuuhen = L.layerGroup().addTo(map);
@@ -200,6 +209,13 @@ function loadCSV() {
         const lat = parseFloat(row["緯度"]);
         if (!lat || !lon) return;
 
+        // ★ 幹周 → 直径（cm）
+const girth = parseFloat(row["幹周"]); // 幹周(cm)
+const diameter = girth / Math.PI;      // 直径(cm)
+
+// ★ マーカー半径(px)に変換（倍率は調整可能）
+const markerRadius = diameter * 0.5;   // 例：0.5px/cm
+        
         // 樹種による色分け
         let color;
         switch (row["樹種"]) {
@@ -217,7 +233,7 @@ function loadCSV() {
         const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
 
         L.circleMarker([lat, lon], {
-          radius: 6,
+          radius: markerRadius,
           color: color,
           fillColor: color,
           fillOpacity: fillOpacity,
