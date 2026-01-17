@@ -160,3 +160,20 @@ document.getElementById("locateBtn").onclick = () => {
 map.on("locationerror", () => {
   alert("現在地を取得できませんでした");
 });
+
+/* ===== 外部ポイントレイヤ（周辺施設） ===== */
+
+// レイヤグループ（ON/OFF 可能）
+const layerShuuhen = L.layerGroup().addTo(map);
+
+// GeoJSON 読み込み
+fetch("data/points.geojson")
+  .then(res => res.json())
+  .then(json => {
+    L.geoJSON(json, {
+      pointToLayer: (feature, latlng) => L.marker(latlng)
+    }).eachLayer(layer => layerShuuhen.addLayer(layer));
+  });
+
+// レイヤコントロールに登録
+L.control.layers(null, { "周辺施設": layerShuuhen }).addTo(map);
