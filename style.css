@@ -134,7 +134,7 @@ body { margin: 0; font-family: sans-serif; }
 }
 
 /* スマホだけ表示 */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   #locateBtn {
     display: block;
   }
@@ -186,7 +186,7 @@ body { margin: 0; font-family: sans-serif; }
 }
 
 /* ===== スマホ最適化（Level 1） ===== */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
 
   .mobile-only {
     display: inline-block;
