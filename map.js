@@ -1,5 +1,5 @@
 /*
-  map.js version 0.9.0
+  map.js version 0.9.1
 
   Contains:
     - 起動メッセージ
@@ -12,6 +12,9 @@
     - 十字線マーカー
     - 座標表示
     - 現在地取得
+    - 周辺施設レイヤ
+    - CSVレイヤ（樹種色分け・間伐塗りつぶし切替）
+    - レイヤコントロール（独立）
 */
 
 /* ===== 起動メッセージ ===== */
@@ -24,7 +27,8 @@ window.onload = () => {
     "・属性情報の確認\n" +
     "・写真管理（EXIF 読み込み）\n" +
     "・360°写真の自動判別とビューア表示\n" +
-    "・写真カード一覧から地図へジャンプ\n"
+    "・写真カード一覧から地図へジャンプ\n" +
+    "・CSVデータの読み込みと色分け表示"
   );
 };
 
@@ -96,7 +100,7 @@ new L.Control.MiniMap(miniLayer, {
   zoomLevelOffset: -5
 }).addTo(map);
 
-/* ===== 属性ビューア ===== */
+/* ===== 属性ビューア（ダミー） ===== */
 const dummyGeoJSON = {
   type: "FeatureCollection",
   features: [
@@ -160,24 +164,83 @@ map.on("locationerror", () => {
   alert("現在地を取得できませんでした");
 });
 
-/* ===== 外部ポイントレイヤ（周辺施設） ===== */
-// レイヤグループ（ON/OFF 可能）
+/* ===== レイヤグループ ===== */
 const layerShuuhen = L.layerGroup().addTo(map);
+const layerCSV = L.layerGroup().addTo(map);
 
-// GeoJSON 読み込み
+/* ===== 周辺施設（GeoJSON） ===== */
 fetch("data/points.geojson")
   .then(res => res.json())
   .then(json => {
-L.geoJSON(json, {
-  pointToLayer: (feature, latlng) => {
-    return L.marker(latlng).bindPopup(
-      Object.entries(feature.properties)
-        .map(([k, v]) => `<b>${k}</b>: ${v}`)
-        .join("<br>")
-    );
-  }
-}).addLayer(layerShuuhen);
+    L.geoJSON(json, {
+      pointToLayer: (feature, latlng) => L.marker(latlng).bindPopup(
+        Object.entries(feature.properties)
+          .map(([k, v]) => `<b>${k}</b>: ${v}`)
+          .join("<br>")
+      )
+    }).eachLayer(layer => layerShuuhen.addLayer(layer));
   });
 
-// レイヤコントロールに登録
-L.control.layers(null, { "周辺施設": layerShuuhen }, { position: "bottomleft" }).addTo(map);
+/* ===== CSV 読み込み（樹種色分け・間伐塗りつぶし切替） ===== */
+function loadCSV() {
+  layerCSV.clearLayers();
+
+  fetch("data/trees.csv")
+    .then(res => res.text())
+    .then(text => {
+      const lines = text.trim().split("\n");
+      const header = lines[0].split(",");
+
+      lines.slice(1).forEach(line => {
+        const cols = line.split(",");
+        const row = {};
+        header.forEach((key, i) => row[key] = cols[i]);
+
+        const lon = parseFloat(row["経度"]);
+        const lat = parseFloat(row["緯度"]);
+        if (!lat || !lon) return;
+
+        // 樹種による色分け
+        let color;
+        switch (row["樹種"]) {
+          case "スギ":
+            color = "#99cc00"; // 黄緑
+            break;
+          case "アテ":
+            color = "#66ccff"; // 水色
+            break;
+          default:
+            color = "#cccccc"; // その他
+        }
+
+        // 間伐（0/1）で塗りつぶし切替
+        const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
+
+        L.circleMarker([lat, lon], {
+          radius: 6,
+          color: color,
+          fillColor: color,
+          fillOpacity: fillOpacity,
+          weight: 2
+        })
+        .bindPopup(
+          Object.entries(row)
+            .map(([k, v]) => `<b>${k}</b>: ${v}`)
+            .join("<br>")
+        )
+        .addTo(layerCSV);
+      });
+    });
+}
+
+loadCSV();
+
+/* ===== レイヤコントロール（独立配置） ===== */
+L.control.layers(
+  null,
+  {
+    "周辺施設": layerShuuhen,
+    "森林調査": layerCSV
+  },
+  { position: "bottomleft" }
+).addTo(map);
