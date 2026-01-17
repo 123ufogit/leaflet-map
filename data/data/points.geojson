@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "A地点" },
+      "geometry": { "type": "Point", "coordinates": [136.65, 36.56] }
+    }
+  ]
+}
