@@ -168,16 +168,84 @@ map.on("locationerror", () => {
 const layerShuuhen = L.layerGroup().addTo(map);
 const layerCSV = L.layerGroup().addTo(map);
 
+/* ===== TLSエリア（WGS84 GeoJSON） ===== */
+const layerTLS = L.layerGroup().addTo(map);  // CSV より前に追加 → 背面になる
+
+fetch("data/TLS_area.geojson")
+  .then(res => res.json())
+  .then(json => {
+    L.geoJSON(json, {
+      style: {
+        color: "#0066ff",   // 青いアウトライン
+        weight: 1.5,        // 細い枠線
+        fill: false         // 塗りつぶしなし
+      },
+      onEachFeature: (feature, layer) => {
+        // ポップアップは必要なら表示（Trees の邪魔にならない）
+        if (feature.properties) {
+          const html = Object.entries(feature.properties)
+            .map(([k, v]) => `<b>${k}</b>: ${v}`)
+            .join("<br>");
+          layer.bindPopup(html);
+        }
+      }
+    }).eachLayer(layer => layerTLS.addLayer(layer));
+  });
+
 /* ===== 周辺施設（GeoJSON） ===== */
 fetch("data/points.geojson")
   .then(res => res.json())
   .then(json => {
     L.geoJSON(json, {
-      pointToLayer: (feature, latlng) => L.marker(latlng).bindPopup(
-        Object.entries(feature.properties)
-          .map(([k, v]) => `<b>${k}</b>: ${v}`)
-          .join("<br>")
-      )
+pointToLayer: (feature, latlng) => {
+  const p = feature.properties;
+  let html = "";
+
+  // ① name（中央寄せタイトル）
+  if (p.name) {
+    html += `
+      <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:4px;">
+        ${p.name}
+      </div>
+    `;
+  }
+
+  // ② address（小さめのサブ情報）
+  if (p.address) {
+    html += `
+      <div style="font-size:13px; color:#555; margin-bottom:4px;">
+        ${p.address}
+      </div>
+    `;
+  }
+
+  // ③ phone（スマホで発信できるリンク）
+  if (p.phone) {
+    html += `
+      <div style="font-size:13px; margin-bottom:4px;">
+        <a href="tel:${p.phone}" style="color:#0066cc;">
+          ${p.phone}
+        </a>
+      </div>
+    `;
+  }
+
+  // ④ url（Google マップで開くリンク）
+  if (p.url && feature.geometry && feature.geometry.coordinates) {
+    const [lng, lat] = feature.geometry.coordinates;
+    const gmap = `https://www.google.com/maps?q=${lat},${lng}`;
+
+    html += `
+      <div style="margin-top:6px;">
+        <a href="${gmap}" target="_blank" style="color:#0066cc;">
+          Googleマップで開く
+        </a>
+      </div>
+    `;
+  }
+
+  return L.marker(latlng).bindPopup(html);
+}
     }).eachLayer(layer => layerShuuhen.addLayer(layer));
   });
 
@@ -279,8 +347,9 @@ loadCSV();
 L.control.layers(
   null,
   {
-    "周辺施設": layerShuuhen,
+    "TLSエリア": layerTLS
     "森林調査": layerCSV
+    "周辺施設": layerShuuhen,
   },
   { position: "bottomleft" }
 ).addTo(map);
