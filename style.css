@@ -103,7 +103,7 @@ body { margin: 0; font-family: sans-serif; }
 #coordBox {
   position: absolute;
   bottom: 10px;
-  left: 50%;
+  left: 30%;
   background: rgba(0,0,0,0.6);
   color: #fff;
   padding: 6px 10px;
