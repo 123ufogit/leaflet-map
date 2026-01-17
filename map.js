@@ -60,24 +60,34 @@ tabPhoto.onclick = () => {
 /* ===== 地図初期化 ===== */
 const layerGSIstd = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
-  { attribution: "地理院タイル（標準）" }
-);
+  { attribution: "地理院タイル（標準）" ,
+  maxZoom: 30,
+  maxNativeZoom: 18
+}
+  );
 
 const map = L.map("map", {
   center: [37.303254, 136.915478],
   zoom: 15,
+  maxZoom: 30,
   layers: [layerGSIstd]
 });
 
 /* ===== ベースレイヤー ===== */
 const layerOSM = L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  { attribution: "© OpenStreetMap contributors" }
+  { attribution: "© OpenStreetMap contributors" ,
+    maxZoom: 30,
+    maxNativeZoom: 18
+}
 );
 
 const layerGSIort = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
-  { attribution: "地理院タイル（空中写真）" }
+  { attribution: "地理院タイル（空中写真）",
+  maxZoom: 30,
+  maxNativeZoom: 18
+}
 );
 
 L.control.layers({
