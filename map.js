@@ -164,9 +164,19 @@ map.on("locationerror", () => {
   alert("現在地を取得できませんでした");
 });
 
-/* ===== レイヤグループ ===== */
-const layerShuuhen = L.layerGroup().addTo(map);
-const layerCSV = L.layerGroup().addTo(map);
+/* ===== メッシュ20（EPSG:3857 GeoJSON） ===== */
+const layerMesh20 = L.layerGroup().addTo(map);
+fetch("data/mesh20.geojson")
+  .then(res => res.json())
+  .then(json => {
+    L.geoJSON(json, {
+      style: {
+        color: "#888888",   // 灰色
+        weight: 0.7,        // 細い線
+        fill: false         // 塗りつぶしなし
+      }
+    }).eachLayer(layer => layerMesh20.addLayer(layer));
+  });
 
 /* ===== TLSエリア（WGS84 GeoJSON） ===== */
 const layerTLS = L.layerGroup().addTo(map);  // CSV より前に追加 → 背面になる
@@ -193,6 +203,7 @@ fetch("data/TLS_area.geojson")
   });
 
 /* ===== 周辺施設（GeoJSON） ===== */
+const layerShuuhen = L.layerGroup().addTo(map);
 fetch("data/points.geojson")
   .then(res => res.json())
   .then(json => {
@@ -250,6 +261,7 @@ pointToLayer: (feature, latlng) => {
   });
 
 /* ===== CSV 読み込み（樹種色分け・間伐塗りつぶし切替） ===== */
+const layerCSV = L.layerGroup().addTo(map);
 function loadCSV() {
   layerCSV.clearLayers();
 
