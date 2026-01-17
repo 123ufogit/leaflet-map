@@ -103,13 +103,13 @@ body { margin: 0; font-family: sans-serif; }
 #coordBox {
   position: absolute;
   bottom: 10px;
-  left: 10px;
+  left: 50%;
   background: rgba(0,0,0,0.6);
   color: #fff;
   padding: 6px 10px;
   border-radius: 4px;
   font-size: 13px;
-  z-index: 1000;
+  z-index: 300;
 }
 
 /* ============================================================
