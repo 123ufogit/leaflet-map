@@ -1,6 +1,5 @@
 /*
   map.js version 0.9.0
-  Updated: 2026-01-12
 
   Contains:
     - 起動メッセージ
