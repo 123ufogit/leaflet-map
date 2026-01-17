@@ -212,8 +212,4 @@ body { margin: 0; font-family: sans-serif; }
   #coordBox {
     bottom: 60px;
   }
-
-  .leaflet-control-minimap {
-    display: none !important;
-  }
 }
