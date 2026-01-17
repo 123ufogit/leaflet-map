@@ -121,6 +121,12 @@ body { margin: 0; font-family: sans-serif; }
   background: #000; /* 任意：枠が見えるように */
 }
 
+/* MiniMap の位置を少し上にずらす */
+.leaflet-control-minimap {
+  bottom: 20px !important; /* デフォルトより上に */
+  right: 10px !important;
+}
+
 /* ===== Google Maps 風 現在地ボタン ===== */
 /* PCでは非表示 */
 #locateBtn {
@@ -137,7 +143,7 @@ body { margin: 0; font-family: sans-serif; }
 /* ボタンの見た目（Google Maps 風） */
 .locate-btn {
   position: absolute;
-  bottom: 20px;
+  bottom: 180px;
   right: 20px;
 
   width: 40px;
