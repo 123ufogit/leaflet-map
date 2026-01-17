@@ -230,12 +230,45 @@ const markerRadius = diameter * 0.2;   // 例：0.2px/cm
           fillOpacity: fillOpacity,
           weight: 2
         })
-        .bindPopup(
-          Object.entries(row)
-            .map(([k, v]) => `<b>${k}</b>: ${v}`)
-            .join("<br>")
-        )
-        .addTo(layerCSV);
+.bindPopup(() => {
+  let html = "";
+
+  // 立木ID
+  if (row["立木ID"]) {
+    html += `<div><strong>立木ID：</strong>${row["立木ID"]}</div>`;
+  }
+
+  // 樹種
+  if (row["樹種"]) {
+    html += `<div><strong>樹種：</strong>${row["樹種"]}</div>`;
+  }
+
+  // DBH（胸高直?）→ 小数点1桁 + cm
+  if (row["胸高直?"]) {
+    const dbh = Number(row["胸高直?"]);
+    if (!isNaN(dbh)) {
+      html += `<div><strong>DBH：</strong>${dbh.toFixed(1)} cm</div>`;
+    }
+  }
+
+  // 樹高 → 小数点1桁 + m
+  if (row["樹高"]) {
+    const h = Number(row["樹高"]);
+    if (!isNaN(h)) {
+      html += `<div><strong>樹高：</strong>${h.toFixed(1)} m</div>`;
+    }
+  }
+
+  // 材積 → 小数点2桁 + m³
+  if (row["材積"]) {
+    const v = Number(row["材積"]);
+    if (!isNaN(v)) {
+      html += `<div><strong>材積：</strong>${v.toFixed(2)} m³</div>`;
+    }
+  }
+
+  return html;
+})        .addTo(layerCSV);
       });
     });
 }
