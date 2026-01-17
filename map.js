@@ -168,6 +168,30 @@ map.on("locationerror", () => {
 const layerShuuhen = L.layerGroup().addTo(map);
 const layerCSV = L.layerGroup().addTo(map);
 
+/* ===== TLSエリア（WGS84 GeoJSON） ===== */
+const layerTLS = L.layerGroup().addTo(map);  // CSV より前に追加 → 背面になる
+
+fetch("data/TLS_area.geojson")
+  .then(res => res.json())
+  .then(json => {
+    L.geoJSON(json, {
+      style: {
+        color: "#0066ff",   // 青いアウトライン
+        weight: 1.5,        // 細い枠線
+        fill: false         // 塗りつぶしなし
+      },
+      onEachFeature: (feature, layer) => {
+        // ポップアップは必要なら表示（Trees の邪魔にならない）
+        if (feature.properties) {
+          const html = Object.entries(feature.properties)
+            .map(([k, v]) => `<b>${k}</b>: ${v}`)
+            .join("<br>");
+          layer.bindPopup(html);
+        }
+      }
+    }).eachLayer(layer => layerTLS.addLayer(layer));
+  });
+
 /* ===== 周辺施設（GeoJSON） ===== */
 fetch("data/points.geojson")
   .then(res => res.json())
@@ -279,8 +303,9 @@ loadCSV();
 L.control.layers(
   null,
   {
-    "周辺施設": layerShuuhen,
+    "TLSエリア": layerTLS
     "森林調査": layerCSV
+    "周辺施設": layerShuuhen,
   },
   { position: "bottomleft" }
 ).addTo(map);
