@@ -164,12 +164,6 @@ map.on("locationerror", () => {
   alert("現在地を取得できませんでした");
 });
 
-/* ===== 縮尺 ===== */
-L.control.scale({
-  imperial: false,   // メートル法のみ
-  maxWidth: 200
-}).addTo(map);
-
 /* ===== レイヤグループ ===== */
 const layerShuuhen = L.layerGroup().addTo(map);
 const layerCSV = L.layerGroup().addTo(map);
