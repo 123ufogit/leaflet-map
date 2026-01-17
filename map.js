@@ -21,7 +21,7 @@
 window.onload = () => {
   alert(
     "Leaflet 0.9.0 を読み込みました。\n\n" +
-    "【このアプリでできること】\n" +
+    "【この地図は地上レーザ計測（TLS）調査結果の確認、共有を目的に開発しました。】\n" +
     "・地図の移動・拡大縮小\n" +
     "・現在地の取得\n" +
     "・属性情報の確認\n" +
@@ -60,24 +60,34 @@ tabPhoto.onclick = () => {
 /* ===== 地図初期化 ===== */
 const layerGSIstd = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
-  { attribution: "地理院タイル（標準）" }
-);
+  { attribution: "地理院タイル（標準）" ,
+  maxZoom: 30,
+  maxNativeZoom: 18
+}
+  );
 
 const map = L.map("map", {
   center: [37.303254, 136.915478],
   zoom: 15,
+  maxZoom: 30,
   layers: [layerGSIstd]
 });
 
 /* ===== ベースレイヤー ===== */
 const layerOSM = L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  { attribution: "© OpenStreetMap contributors" }
+  { attribution: "© OpenStreetMap contributors" ,
+    maxZoom: 30,
+    maxNativeZoom: 18
+}
 );
 
 const layerGSIort = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
-  { attribution: "地理院タイル（空中写真）" }
+  { attribution: "地理院タイル（空中写真）",
+  maxZoom: 30,
+  maxNativeZoom: 18
+}
 );
 
 L.control.layers({
@@ -164,9 +174,19 @@ map.on("locationerror", () => {
   alert("現在地を取得できませんでした");
 });
 
-/* ===== レイヤグループ ===== */
-const layerShuuhen = L.layerGroup().addTo(map);
-const layerCSV = L.layerGroup().addTo(map);
+/* ===== メッシュ20（EPSG:3857 GeoJSON） ===== */
+const layerMesh20 = L.layerGroup().addTo(map);
+fetch("data/mesh20.geojson")
+  .then(res => res.json())
+  .then(json => {
+    L.geoJSON(json, {
+      style: {
+        color: "#888888",   // 灰色
+        weight: 0.7,        // 細い線
+        fill: false         // 塗りつぶしなし
+      }
+    }).eachLayer(layer => layerMesh20.addLayer(layer));
+  });
 
 /* ===== TLSエリア（WGS84 GeoJSON） ===== */
 const layerTLS = L.layerGroup().addTo(map);  // CSV より前に追加 → 背面になる
@@ -193,6 +213,7 @@ fetch("data/TLS_area.geojson")
   });
 
 /* ===== 周辺施設（GeoJSON） ===== */
+const layerShuuhen = L.layerGroup().addTo(map);
 fetch("data/points.geojson")
   .then(res => res.json())
   .then(json => {
@@ -250,6 +271,7 @@ pointToLayer: (feature, latlng) => {
   });
 
 /* ===== CSV 読み込み（樹種色分け・間伐塗りつぶし切替） ===== */
+const layerCSV = L.layerGroup().addTo(map);
 function loadCSV() {
   layerCSV.clearLayers();
 
@@ -273,7 +295,7 @@ const girth = parseFloat(row["幹周"]); // 幹周(cm)
 const diameter = girth / Math.PI;      // 直径(cm)
 
 // ★ マーカー半径(px)に変換（倍率は調整可能）
-const markerRadius = diameter * 0.2;   // 例：0.2px/cm
+const markerRadius = diameter * 0.1;   // 例：0.2px/cm
         
         // 樹種による色分け
         let color;
@@ -296,7 +318,7 @@ const markerRadius = diameter * 0.2;   // 例：0.2px/cm
           color: color,
           fillColor: color,
           fillOpacity: fillOpacity,
-          weight: 2
+          weight: 0.5
         })
 .bindPopup(() => {
   let html = "";
@@ -347,9 +369,10 @@ loadCSV();
 L.control.layers(
   null,
   {
-    "TLSエリア": layerTLS
-    "森林調査": layerCSV
-    "周辺施設": layerShuuhen,
+    "TLSエリア": layerTLS,
+    "森林調査": layerCSV,
+    "20mメッシュ": layerMesh20,
+    "周辺施設": layerShuuhen
   },
   { position: "bottomleft" }
 ).addTo(map);
