@@ -3,8 +3,99 @@
   "features": [
     {
       "type": "Feature",
-      "properties": { "name": "A地点" },
-      "geometry": { "type": "Point", "coordinates": [136.65, 36.56] }
+      "properties": {
+        "name": "能登空港（のと里山空港）",
+        "address": "〒929-2372 石川県輪島市三井町洲衛１０−１１−１",
+        "phone": "0768-26-2000",
+        "snippet": "〒929-2372 石川県輪島市三井町洲衛１０−１１−１",
+        "url": "https://www.google.com/earth/rpc/entity?lat=37.2950808&lng=136.9574862&fid=0x5ff6d4ec2d79dbc1:0x11521870bd51e36&hl=ja&gl=jp&client=earth-client&cv=7.3.6.10441&useragent=GoogleEarth/7.3.6.10441(Windows;Microsoft Windows (6.2.9200.0);ja;kml:2.2;client:Pro;type:default)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [136.9574862, 37.2950808]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "ハウスあすなろ",
+        "address": "〒929-2362 石川県輪島市三井町中",
+        "snippet": "〒929-2362 石川県輪島市三井町中",
+        "url": "https://www.google.com/earth/rpc/entity?lat=37.002930750000004&lng=137.06783055&fid=0x5ff12b005c51ef21:0xb5ce85d156c2316&hl=ja&gl=jp&client=earth-client&cv=7.3.6.10441&useragent=GoogleEarth/7.3.6.10441(Windows;Microsoft Windows (6.2.9200.0);ja;kml:2.2;client:Pro;type:default)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [136.9154982, 37.3031611]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "能登森林組合",
+        "address": "〒927-0023 石川県鳳珠郡穴水町麦ケ浦１７−５",
+        "phone": "0768-52-0316",
+        "snippet": "〒927-0023 石川県鳳珠郡穴水町麦ケ浦１７−５",
+        "url": "https://www.google.com/earth/rpc/entity?lat=37.153237499999996&lng=136.928999&fid=0x5ff6d57210627e6d:0xbc2d7dad30e51609&hl=ja&gl=jp&client=earth-client&cv=7.3.6.10441&useragent=GoogleEarth/7.3.6.10441(Windows;Microsoft Windows (6.2.9200.0);ja;kml:2.2;client:Pro;type:default)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [136.9204628, 37.275526]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "能登木材総合センター（協同組合）",
+        "address": "〒927-0023 石川県鳳珠郡穴水町麦ケ浦１７−６−１",
+        "phone": "0768-52-3388",
+        "snippet": "〒927-0023 石川県鳳珠郡穴水町麦ケ浦１７−６−１",
+        "url": "https://www.google.com/earth/rpc/entity?lat=37.276559000000006&lng=136.92066&fid=0x5ff6d56d88a238a7:0xf34deb92d4acccde&hl=ja&gl=jp&client=earth-client&cv=7.3.6.10441&useragent=GoogleEarth/7.3.6.10441(Windows;Microsoft Windows (6.2.9200.0);ja;kml:2.2;client:Pro;type:default)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [136.92066, 37.276559]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "（株）九内製材所",
+        "address": "〒928-0041 石川県輪島市中段町４４甲２",
+        "phone": "0768-23-0971",
+        "snippet": "〒928-0041 石川県輪島市中段町４４甲２",
+        "url": "https://www.google.com/earth/rpc/entity?lat=37.386134999999996&lng=136.89011299999999&fid=0x5ff12ef3932bd68d:0xea36a41edb1485aa&hl=ja&gl=jp&client=earth-client&cv=7.3.6.10441&useragent=GoogleEarth/7.3.6.10441(Windows;Microsoft Windows (6.2.9200.0);ja;kml:2.2;client:Pro;type:default)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [136.8901669, 37.3861158]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "㈱山儀製材所",
+        "address": "〒928-0062 石川県輪島市堀町２−３８",
+        "phone": "0768-22-0760",
+        "snippet": "〒928-0062 石川県輪島市堀町２−３８",
+        "url": "https://www.google.com/earth/rpc/entity?lat=37.390809&lng=136.894521&fid=0x5ff12e58ec893f19:0x204a59370dab120c&hl=ja&gl=jp&client=earth-client&cv=7.3.6.10441&useragent=GoogleEarth/7.3.6.10441(Windows;Microsoft Windows (6.2.9200.0);ja;kml:2.2;client:Pro;type:default)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [136.894521, 37.390809]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "鳳至木材跡地",
+        "address": "〒928-0024 石川県輪島市山岸町イ１０",
+        "snippet": "〒928-0024 石川県輪島市山岸町イ１０",
+        "url": "https://www.google.com/earth/rpc/entity?lat=37.3822847&lng=136.9079673&fid=0x5ff12f00515a6631:0xd7b4f44f422d55c6&hl=ja&gl=jp&client=earth-client&cv=7.3.6.10441&useragent=GoogleEarth/7.3.6.10441(Windows;Microsoft Windows (6.2.9200.0);ja;kml:2.2;client:Pro;type:default)"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [136.9078349, 37.382292]
+      }
     }
   ]
 }
