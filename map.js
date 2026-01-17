@@ -212,6 +212,21 @@ fetch("data/TLS_area.geojson")
     }).eachLayer(layer => layerTLS.addLayer(layer));
   });
 
+/* ===== SCANエリア（WGS84 GeoJSON） ===== */
+const layerSCAN = L.layerGroup().addTo(map);
+
+fetch("data/scan.geojson")
+  .then(res => res.json())
+  .then(json => {
+    L.geoJSON(json, {
+      style: {
+        color: "#0066ff",   // 青いアウトライン
+        weight: 0.5,        // 細い枠線
+        fill: false         // 塗りつぶしなし
+      },
+    }).eachLayer(layer => layerTLS.addLayer(layer));
+  });
+
 /* ===== 周辺施設（GeoJSON） ===== */
 const layerShuuhen = L.layerGroup().addTo(map);
 fetch("data/points.geojson")
@@ -370,6 +385,7 @@ L.control.layers(
   null,
   {
     "TLSエリア": layerTLS,
+    "20mメッシュ": layerSCAN,
     "森林調査": layerCSV,
     "20mメッシュ": layerMesh20,
     "周辺施設": layerShuuhen
