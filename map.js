@@ -371,6 +371,7 @@ L.control.layers(
   {
     "TLSエリア": layerTLS,
     "森林調査": layerCSV,
+    "20mメッシュ": layerMesh20,
     "周辺施設": layerShuuhen
   },
   { position: "bottomleft" }
