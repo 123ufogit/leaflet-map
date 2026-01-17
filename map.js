@@ -152,46 +152,6 @@ function updateCenterInfo() {
 map.on("move", updateCenterInfo);
 updateCenterInfo();
 
-/* ===== 検索 ===== */
-function isLatLng(text) {
-  const parts = text.split(",");
-  return parts.length === 2 &&
-    !isNaN(parseFloat(parts[0])) &&
-    !isNaN(parseFloat(parts[1]));
-}
-
-function moveToLatLng(lat, lng) {
-  map.setView([lat, lng], 15);
-}
-
-function searchPlace(query) {
-  const url =
-    "https://nominatim.openstreetmap.org/search?format=json&q=" +
-    encodeURIComponent(query);
-
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      if (data.length === 0) {
-        alert("場所が見つかりませんでした");
-        return;
-      }
-      moveToLatLng(parseFloat(data[0].lat), parseFloat(data[0].lon));
-    });
-}
-
-document.getElementById("searchBtn").onclick = () => {
-  const text = document.getElementById("searchBox").value.trim();
-  if (text === "") return;
-
-  if (isLatLng(text)) {
-    const p = text.split(",");
-    moveToLatLng(parseFloat(p[0]), parseFloat(p[1]));
-  } else {
-    searchPlace(text);
-  }
-};
-
 /* ===== 現在地 ===== */
 document.getElementById("locateBtn").onclick = () => {
   map.locate({ setView: true, maxZoom: 16 });
