@@ -1,10 +1,11 @@
 /*
-  photo.js version 1.1.0
-  Updated: 2026-01-14
+  photo.js version 1.2.0
+  Updated: 2026-01-15
   Changes:
-    - loadPhotoFile() を共通処理として整理
-    - 地図全体をドロップゾーンとして利用（pointer-events 制御）
-    - 他 UI と干渉しない dragover / drop 実装
+    - dropzone に dragenter / dragover / dragleave / drop を直接付与
+    - mapDiv ではなく dropzone が dragover を受ける仕様に完全対応
+    - pointer-events 制御と CSS の dragover クラス連動を最適化
+    - loadPhotoFile() を共通処理として維持
 */
 
 const photoDataList = [];
@@ -115,28 +116,37 @@ document.getElementById("photoInput").onchange = function (e) {
 };
 
 /* ============================================================
-   地図全体をドロップゾーンとして利用
+   地図全面 dropzone 対応（dropzone に直接イベントを付ける）
    ============================================================ */
 const mapDiv = document.getElementById("map");
-const dropzone = document.getElementById("dropzone"); // HTML に追加済みの透明レイヤー
+const dropzone = document.getElementById("dropzone");
 
-mapDiv.addEventListener("dragover", (e) => {
+/* dragenter */
+dropzone.addEventListener("dragenter", (e) => {
   e.preventDefault();
   mapDiv.classList.add("dragover");
 });
 
-mapDiv.addEventListener("dragleave", () => {
+/* dragover */
+dropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  mapDiv.classList.add("dragover");
+});
+
+/* dragleave */
+dropzone.addEventListener("dragleave", () => {
   mapDiv.classList.remove("dragover");
 });
 
-mapDiv.addEventListener("drop", (e) => {
+/* drop */
+dropzone.addEventListener("drop", (e) => {
   e.preventDefault();
   mapDiv.classList.remove("dragover");
 
   const files = e.dataTransfer.files;
   for (let file of files) {
     if (file.type.match("image.*")) {
-      loadPhotoFile(file);  // ← 既存の共通処理
+      loadPhotoFile(file);
     }
   }
 });
