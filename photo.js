@@ -1,6 +1,10 @@
 /*
-  photo.js version 0.9.0
-  Updated: 2026-01-12
+  photo.js version 1.0.0
+  Updated: 2026-01-13
+  Changes:
+    - loadPhotoFile() を新規追加（photoInput と D&D の共通処理）
+    - ドラッグ＆ドロップ対応
+    - コード整理と軽微な最適化
 */
 
 const photoDataList = [];
@@ -15,93 +19,130 @@ function detect360(imgURL, callback) {
   img.src = imgURL;
 }
 
-/* ===== 写真読み込み ===== */
-document.getElementById("photoInput").onchange = function(e) {
-  const files = e.target.files;
+/* ============================================================
+   写真読み込みの共通処理（photoInput & Drag&Drop 両対応）
+   ============================================================ */
+function loadPhotoFile(file) {
 
-  for (let file of files) {
-    EXIF.getData(file, function() {
-      const lat = EXIF.getTag(this, "GPSLatitude");
-      const lng = EXIF.getTag(this, "GPSLongitude");
-      const dateTime = EXIF.getTag(this, "DateTimeOriginal");
+  EXIF.getData(file, function () {
+    const lat = EXIF.getTag(this, "GPSLatitude");
+    const lng = EXIF.getTag(this, "GPSLongitude");
+    const dateTime = EXIF.getTag(this, "DateTimeOriginal");
 
-      if (!lat || !lng) {
-        alert(file.name + " にはGPS位置情報がありません。");
-        return;
+    if (!lat || !lng) {
+      alert(file.name + " にはGPS位置情報がありません。");
+      return;
+    }
+
+    function toDecimal(dms) {
+      return dms[0] + dms[1] / 60 + dms[2] / 3600;
+    }
+
+    const latDec = toDecimal(lat);
+    const lngDec = toDecimal(lng);
+
+    const imgURL = URL.createObjectURL(file);
+    const fileName = file.name;
+    const shotTime = dateTime ? dateTime : "不明";
+
+    const index = photoDataList.length;
+
+    detect360(imgURL, (is360) => {
+
+      let popupHTML = "";
+
+      if (is360) {
+        popupHTML = `
+          <div class="pano-box" id="pano_${index}"></div>
+          <div style="font-size:12px; margin-top:4px;">
+            <b>${fileName}</b><br>
+            Lat: ${latDec.toFixed(6)}<br>
+            Lng: ${lngDec.toFixed(6)}
+          </div>
+        `;
+      } else {
+        popupHTML = `
+          <div style="text-align:center;">
+            <img src="${imgURL}" width="200"><br>
+            <b>${fileName}</b><br>
+            Lat: ${latDec.toFixed(6)}<br>
+            Lng: ${lngDec.toFixed(6)}
+          </div>
+        `;
       }
 
-      function toDecimal(dms) {
-        return dms[0] + dms[1] / 60 + dms[2] / 3600;
-      }
+      const marker = L.marker([latDec, lngDec]).addTo(map);
+      marker.bindPopup(popupHTML);
 
-      const latDec = toDecimal(lat);
-      const lngDec = toDecimal(lng);
-
-      const imgURL = URL.createObjectURL(file);
-      const fileName = file.name;
-      const shotTime = dateTime ? dateTime : "不明";
-
-      const index = photoDataList.length;
-
-      detect360(imgURL, (is360) => {
-
-        let popupHTML = "";
-
+      /* ===== Popup 完全表示後に Pannellum を初期化 ===== */
+      marker.on("popupopen", () => {
         if (is360) {
-          popupHTML = `
-            <div class="pano-box" id="pano_${index}"></div>
-            <div style="font-size:12px; margin-top:4px;">
-              <b>${fileName}</b><br>
-              Lat: ${latDec.toFixed(6)}<br>
-              Lng: ${lngDec.toFixed(6)}
-            </div>
-          `;
-        } else {
-          popupHTML = `
-            <div style="text-align:center;">
-              <img src="${imgURL}" width="200"><br>
-              <b>${fileName}</b><br>
-              Lat: ${latDec.toFixed(6)}<br>
-              Lng: ${lngDec.toFixed(6)}
-            </div>
-          `;
+          setTimeout(() => {
+            pannellum.viewer(`pano_${index}`, {
+              type: "equirectangular",
+              panorama: imgURL,
+              autoLoad: true,
+              showFullscreenCtrl: true
+            });
+          }, 200);
         }
-
-        const marker = L.marker([latDec, lngDec]).addTo(map);
-        marker.bindPopup(popupHTML);
-
-        /* ===== Popup 完全表示後に Pannellum を初期化 ===== */
-        marker.on("popupopen", () => {
-          if (is360) {
-            setTimeout(() => {
-              pannellum.viewer(`pano_${index}`, {
-                type: "equirectangular",
-                panorama: imgURL,
-                autoLoad: true,
-                showFullscreenCtrl: true
-              });
-            }, 200);  // ← ここが重要（安定表示）
-          }
-        });
-
-        const data = {
-          lat: latDec,
-          lng: lngDec,
-          fileName,
-          imgURL,
-          marker,
-          shotTime,
-          is360
-        };
-
-        photoDataList.push(data);
-        addThumbnail(index);
       });
+
+      const data = {
+        lat: latDec,
+        lng: lngDec,
+        fileName,
+        imgURL,
+        marker,
+        shotTime,
+        is360
+      };
+
+      photoDataList.push(data);
+      addThumbnail(index);
     });
+  });
+}
+
+/* ============================================================
+   photoInput（ファイル選択）イベント
+   ============================================================ */
+document.getElementById("photoInput").onchange = function (e) {
+  const files = e.target.files;
+  for (let file of files) {
+    loadPhotoFile(file);
   }
 };
 
-/* ===== サムネイル生成 ===== */
+/* ============================================================
+   ドラッグ＆ドロップ対応
+   ============================================================ */
+const dropzone = document.getElementById("dropzone");
+
+dropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropzone.style.background = "#eef";
+});
+
+dropzone.addEventListener("dragleave", () => {
+  dropzone.style.background = "rgba(255,255,255,0.8)";
+});
+
+dropzone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropzone.style.background = "rgba(255,255,255,0.8)";
+
+  const files = e.dataTransfer.files;
+  for (let file of files) {
+    if (file.type.match("image.*")) {
+      loadPhotoFile(file);  // ← photoInput と同じ処理
+    }
+  }
+});
+
+/* ============================================================
+   サムネイル生成
+   ============================================================ */
 function addThumbnail(index) {
   const data = photoDataList[index];
   const list = document.getElementById("photoList");
@@ -171,7 +212,9 @@ function addThumbnail(index) {
   list.appendChild(item);
 }
 
-/* ===== サムネイル再構築 ===== */
+/* ============================================================
+   サムネイル再構築
+   ============================================================ */
 function refreshThumbnailIndexes() {
   const list = document.getElementById("photoList");
   list.innerHTML = "";
