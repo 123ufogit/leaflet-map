@@ -1,10 +1,10 @@
 /*
-  photo.js version 1.2.0
-  Updated: 2026-01-15
+  photo.js version 1.3.0
+  Updated: 2026-01-16
   Changes:
-    - dropzone に dragenter / dragover / dragleave / drop を直接付与
-    - mapDiv ではなく dropzone が dragover を受ける仕様に完全対応
-    - pointer-events 制御と CSS の dragover クラス連動を最適化
+    - dragenter を mapDiv に付与（dropzone が pointer-events:none のため）
+    - dragover / drop は dropzone に付与
+    - 中央 50% dropzone と CSS の dragover クラス連動を最適化
     - loadPhotoFile() を共通処理として維持
 */
 
@@ -116,29 +116,28 @@ document.getElementById("photoInput").onchange = function (e) {
 };
 
 /* ============================================================
-   地図全面 dropzone 対応（dropzone に直接イベントを付ける）
+   中央 50% dropzone 対応（dragenter は mapDiv）
    ============================================================ */
 const mapDiv = document.getElementById("map");
 const dropzone = document.getElementById("dropzone");
 
-/* dragenter */
-dropzone.addEventListener("dragenter", (e) => {
+/* dragenter → mapDiv に付ける（最重要） */
+mapDiv.addEventListener("dragenter", (e) => {
   e.preventDefault();
   mapDiv.classList.add("dragover");
 });
 
-/* dragover */
+/* dragover → dropzone に付ける */
 dropzone.addEventListener("dragover", (e) => {
   e.preventDefault();
-  mapDiv.classList.add("dragover");
 });
 
-/* dragleave */
-dropzone.addEventListener("dragleave", () => {
+/* dragleave → mapDiv に付ける */
+mapDiv.addEventListener("dragleave", () => {
   mapDiv.classList.remove("dragover");
 });
 
-/* drop */
+/* drop → dropzone に付ける */
 dropzone.addEventListener("drop", (e) => {
   e.preventDefault();
   mapDiv.classList.remove("dragover");
