@@ -1,10 +1,10 @@
 /*
-  photo.js version 1.0.0
-  Updated: 2026-01-13
+  photo.js version 1.1.0
+  Updated: 2026-01-14
   Changes:
-    - loadPhotoFile() を新規追加（photoInput と D&D の共通処理）
-    - ドラッグ＆ドロップ対応
-    - コード整理と軽微な最適化
+    - loadPhotoFile() を共通処理として整理
+    - 地図全体をドロップゾーンとして利用（pointer-events 制御）
+    - 他 UI と干渉しない dragover / drop 実装
 */
 
 const photoDataList = [];
@@ -115,27 +115,28 @@ document.getElementById("photoInput").onchange = function (e) {
 };
 
 /* ============================================================
-   ドラッグ＆ドロップ対応
+   地図全体をドロップゾーンとして利用
    ============================================================ */
-const dropzone = document.getElementById("dropzone");
+const mapDiv = document.getElementById("map");
+const dropzone = document.getElementById("dropzone"); // HTML に追加済みの透明レイヤー
 
-dropzone.addEventListener("dragover", (e) => {
+mapDiv.addEventListener("dragover", (e) => {
   e.preventDefault();
-  dropzone.style.background = "#eef";
+  mapDiv.classList.add("dragover");
 });
 
-dropzone.addEventListener("dragleave", () => {
-  dropzone.style.background = "rgba(255,255,255,0.8)";
+mapDiv.addEventListener("dragleave", () => {
+  mapDiv.classList.remove("dragover");
 });
 
-dropzone.addEventListener("drop", (e) => {
+mapDiv.addEventListener("drop", (e) => {
   e.preventDefault();
-  dropzone.style.background = "rgba(255,255,255,0.8)";
+  mapDiv.classList.remove("dragover");
 
   const files = e.dataTransfer.files;
   for (let file of files) {
     if (file.type.match("image.*")) {
-      loadPhotoFile(file);  // ← photoInput と同じ処理
+      loadPhotoFile(file);  // ← 既存の共通処理
     }
   }
 });
