@@ -188,21 +188,26 @@ body { margin: 0; font-family: sans-serif; }
 /* ===== 写真ドラッグ＆ドロップ用 Dropzone ===== */
 #dropzone {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 25%;          /* 上から25% */
+  left: 25%;         /* 左から25% */
+  width: 50%;        /* 横幅50% */
+  height: 50%;       /* 高さ50% */
 
-  background: rgba(0,0,0,0);
-  pointer-events: none;      /* 通常は地図操作を邪魔しない */
-  z-index: 1500;          /* MiniMap(1000)・locateBtn(500) より上 */
+  background: rgba(0,0,0,0);   /* 通常は透明 */
+  border: 2px dashed rgba(0,0,0,0); /* 通常は見えない */
+
+  pointer-events: none;        /* 通常は地図操作を邪魔しない */
+  z-index: 1500;
+  transition: background 0.2s, border 0.2s;
 }
 
-/* ドラッグ中だけ dropzone を有効化 */
+/* ドラッグ中だけ dropzone を有効化して半透明グレー表示 */
 #map.dragover #dropzone {
-  background: rgba(0,150,255,0.15); /* 軽いハイライト */
-  pointer-events: auto;
+  background: rgba(0,0,0,0.25);   /* 半透明グレー */
+  border: 2px dashed #666;        /* 枠線を表示 */
+  pointer-events: auto;           /* D&D を受け付ける */
 }
+
 
 /* スマホでは邪魔なので非表示 */
 @media (max-width: 768px) {
