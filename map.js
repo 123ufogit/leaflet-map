@@ -181,8 +181,8 @@ fetch("data/mesh20.geojson")
   .then(json => {
     L.geoJSON(json, {
       style: {
-        color: "#888888",   // 灰色
-        weight: 0.7,        // 細い線
+        color: "#0066ff",   // 灰色
+        weight: 0.3,        // 細い線
         fill: false         // 塗りつぶしなし
       }
     }).eachLayer(layer => layerMesh20.addLayer(layer));
@@ -392,3 +392,13 @@ L.control.layers(
   },
   { position: "bottomleft" }
 ).addTo(map);
+
+map.on("zoomend", () => {
+  const z = map.getZoom();
+
+  if (z >= 16) map.addLayer(layerMesh20);
+  else map.removeLayer(layerMesh20);
+
+  if (z >= 14) map.addLayer(layerCSV);
+  else map.removeLayer(layerCSV);
+});
