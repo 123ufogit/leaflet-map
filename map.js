@@ -392,3 +392,13 @@ L.control.layers(
   },
   { position: "bottomleft" }
 ).addTo(map);
+
+map.on("zoomend", () => {
+  const z = map.getZoom();
+
+  if (z >= 16) map.addLayer(layerMesh20);
+  else map.removeLayer(layerMesh20);
+
+  if (z >= 14) map.addLayer(layerCSV);
+  else map.removeLayer(layerCSV);
+});
