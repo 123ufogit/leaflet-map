@@ -396,7 +396,7 @@ L.control.layers(
 map.on("zoomend", () => {
   const z = map.getZoom();
 
-  if (z >= 16) map.addLayer(layerMesh20);
+  if (z >= 18) map.addLayer(layerMesh20);
   else map.removeLayer(layerMesh20);
 
   if (z >= 14) map.addLayer(layerCSV);
