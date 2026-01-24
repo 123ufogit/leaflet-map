@@ -17,7 +17,7 @@ window.addEventListener("load", () => {
    ============================================================ */
 function addSamplePhoto() {
 
-  const imgURL = "leaflet-map/photos/sample.jpg";
+  const imgURL = "photos/sample.jpg";
 
   // サンプル写真の座標（任意）
   const lat = 37.303254;
