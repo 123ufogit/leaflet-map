@@ -1,0 +1,16 @@
+/* ===== SCAN ラベル（Tooltip） ===== */
+.scan-label {
+  color: #ff0000;          /* マーカーと統一した赤色 */
+  background: transparent; /* 背景なしで地図に馴染む */
+  border: none;            /* 枠線なし */
+  font-size: 12px;         /* 視認性の良いサイズ */
+  font-weight: bold;       /* 強調 */
+  padding: 0;              /* 余白なしで位置ズレ防止 */
+  box-shadow: none;        /* 影を消してスッキリ */
+}
+
+.leaflet-tooltip.scan-label {
+  background: transparent; /* Leaflet のデフォ背景も無効化 */
+  border: none;
+  box-shadow: none;
+}
