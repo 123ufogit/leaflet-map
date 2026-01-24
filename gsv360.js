@@ -6,33 +6,13 @@ window.onload = () => {
     "写真をドラッグ＆ドロップするだけで、撮影地点にマーカーが自動配置され、通常写真はもちろん、360°パノラマ写真もその場で閲覧できます。\n" +
     "EXIF の GPS 情報を読み取り、地図上にスナップを並べていく感覚で、旅の記録、フィールド調査、森林・環境モニタリングなど、幅広い用途に活用できます。" +
     "GSV360にはデータ保存機能はありません。写真データの取り扱い・管理は、利用者自身の責任で行ってください。\n" +
-    "本アプリの利用により発生したいかなる損害・トラブルについても、開発者は一切の責任を負いません。利用者は、利用規約に同意した上で本アプリを利用するものとします。"  
+    "利用者は、利用規約に同意した上で本アプリを利用するものとします。"  
   );
 };
 
 /* ===== スマホ用サイドバー開閉 ===== */
 document.getElementById("menuBtn").onclick = () => {
   document.getElementById("sidebar").classList.toggle("open");
-};
-
-/* ===== タブ切り替え ===== */
-const tabAttr = document.getElementById("tabAttr");
-const tabPhoto = document.getElementById("tabPhoto");
-const attrPanel = document.getElementById("attrPanel");
-const photoPanel = document.getElementById("photoPanel");
-
-tabAttr.onclick = () => {
-  tabAttr.classList.add("active");
-  tabPhoto.classList.remove("active");
-  attrPanel.classList.add("active");
-  photoPanel.classList.remove("active");
-};
-
-tabPhoto.onclick = () => {
-  tabPhoto.classList.add("active");
-  tabAttr.classList.remove("active");
-  photoPanel.classList.add("active");
-  attrPanel.classList.remove("active");
 };
 
 /* ===== 地図初期化 ===== */
