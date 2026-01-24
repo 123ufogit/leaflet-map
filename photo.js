@@ -1,11 +1,10 @@
 /*
-  photo.js version 1.3.0
-  Updated: 2026-01-16
+  photo.js version 1.3.1
+  Updated: 2026-01-17
   Changes:
-    - dragenter を mapDiv に付与（dropzone が pointer-events:none のため）
-    - dragover / drop は dropzone に付与
-    - 中央 50% dropzone と CSS の dragover クラス連動を最適化
-    - loadPhotoFile() を共通処理として維持
+    - 非同期処理による index ずれバグを修正
+    - photoDataList.push() の後で index を確定
+    - pano_ の ID を index に合わせて安全に生成
 */
 
 const photoDataList = [];
@@ -28,6 +27,8 @@ function loadPhotoFile(file) {
   EXIF.getData(file, function () {
     const lat = EXIF.getTag(this, "GPSLatitude");
     const lng = EXIF.getTag(this, "GPSLongitude");
+    const latRef = EXIF.getTag(this, "GPSLatitudeRef");
+    const lngRef = EXIF.getTag(this, "GPSLongitudeRef");
     const dateTime = EXIF.getTag(this, "DateTimeOriginal");
 
     if (!lat || !lng) {
@@ -39,22 +40,24 @@ function loadPhotoFile(file) {
       return dms[0] + dms[1] / 60 + dms[2] / 3600;
     }
 
-    const latDec = toDecimal(lat);
-    const lngDec = toDecimal(lng);
+    let latDec = toDecimal(lat);
+    let lngDec = toDecimal(lng);
+
+    if (latRef === "S") latDec *= -1;
+    if (lngRef === "W") lngDec *= -1;
 
     const imgURL = URL.createObjectURL(file);
     const fileName = file.name;
     const shotTime = dateTime ? dateTime : "不明";
 
-    const index = photoDataList.length;
-
     detect360(imgURL, (is360) => {
 
+      /* ===== popup HTML（index は push 後に確定するため仮ID） ===== */
       let popupHTML = "";
 
       if (is360) {
         popupHTML = `
-          <div class="pano-box" id="pano_${index}"></div>
+          <div class="pano-box" id="pano_temp"></div>
           <div style="font-size:12px; margin-top:4px;">
             <b>${fileName}</b><br>
             Lat: ${latDec.toFixed(6)}<br>
@@ -75,20 +78,7 @@ function loadPhotoFile(file) {
       const marker = L.marker([latDec, lngDec]).addTo(map);
       marker.bindPopup(popupHTML);
 
-      /* ===== Popup 完全表示後に Pannellum を初期化 ===== */
-      marker.on("popupopen", () => {
-        if (is360) {
-          setTimeout(() => {
-            pannellum.viewer(`pano_${index}`, {
-              type: "equirectangular",
-              panorama: imgURL,
-              autoLoad: true,
-              showFullscreenCtrl: true
-            });
-          }, 200);
-        }
-      });
-
+      /* ===== push の後で index を確定 ===== */
       const data = {
         lat: latDec,
         lng: lngDec,
@@ -100,6 +90,26 @@ function loadPhotoFile(file) {
       };
 
       photoDataList.push(data);
+      const index = photoDataList.length - 1;
+
+      /* ===== popupopen 時に pano ID を index に差し替えて初期化 ===== */
+      marker.on("popupopen", () => {
+        if (is360) {
+          setTimeout(() => {
+            const popupEl = document.getElementById("pano_temp");
+            if (popupEl) popupEl.id = `pano_${index}`;
+
+            pannellum.viewer(`pano_${index}`, {
+              type: "equirectangular",
+              panorama: imgURL,
+              autoLoad: true,
+              showFullscreenCtrl: true
+            });
+          }, 200);
+        }
+      });
+
+      /* ===== サムネイル生成 ===== */
       addThumbnail(index);
     });
   });
