@@ -1,18 +1,8 @@
-<!--
-  index.html version 0.9.0
-  Updated: 2026-01-12
-  Description:
-    - Leaflet 0.9.0 original full feature set
-    - Minimal mobile optimization (Level 1)
-    - Sidebar toggle button added
-    - MiniMap hidden on mobile
--->
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <title>Leaflet 0.9.0（写真管理統合版）</title>
+  <title>Geo Snap Viewer 360</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Leaflet -->
@@ -24,18 +14,16 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="label.css">
   <link rel="stylesheet" href="photo.css">
 </head>
 
 <body>
 
-  <div id="header">
-    <button id="menuBtn" class="mobile-only">≡</button>
-    Leaflet 0.9.0（写真管理統合版）
-    <button id="locateBtn" class="locate-btn"></button>
-  </div>
-
+<div id="header">
+  <button id="menuBtn" class="mobile-only">≡</button>
+  Geo Snap Viewer 360
+  <button id="locateBtn" class="locate-btn"></button>
+</div>
   <div id="container">
 
     <!-- サイドバー -->
@@ -56,15 +44,12 @@
         <input type="file" id="photoInput" accept="image/jpeg" multiple><br><br>
         <div id="photoList"></div>
       </div>
-
     </div>
 
     <!-- 地図 -->
     <div id="map">
       <div id="coordBox">Lat: ---, Lng: ---</div>
-      <div id="dropzone">画像をここにドロップ</div>
     </div>
-
   </div>
 
   <!-- JSライブラリ（順番厳守） -->
@@ -79,10 +64,4 @@
   <script src="photo.js"></script>
 
 </body>
-
 </html>
-
-
-
-
-
