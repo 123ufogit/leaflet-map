@@ -1,0 +1,88 @@
+<!--
+  index.html version 0.9.0
+  Updated: 2026-01-12
+  Description:
+    - Leaflet 0.9.0 original full feature set
+    - Minimal mobile optimization (Level 1)
+    - Sidebar toggle button added
+    - MiniMap hidden on mobile
+-->
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Leaflet 0.9.0（写真管理統合版）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css">
+
+  <!-- Pannellum -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="label.css">
+  <link rel="stylesheet" href="photo.css">
+</head>
+
+<body>
+
+  <div id="header">
+    <button id="menuBtn" class="mobile-only">≡</button>
+    Leaflet 0.9.0（写真管理統合版）
+    <button id="locateBtn" class="locate-btn"></button>
+  </div>
+
+  <div id="container">
+
+    <!-- サイドバー -->
+    <div id="sidebar">
+
+      <div class="tab-buttons">
+        <div id="tabAttr" class="active">属性情報</div>
+        <div id="tabPhoto">写真管理</div>
+      </div>
+
+      <div id="attrPanel" class="tab-content active">
+        <h3>属性情報</h3>
+        <div id="attrContent">地物をクリックしてください。</div>
+      </div>
+
+      <div id="photoPanel" class="tab-content">
+        <h3>写真管理</h3>
+        <input type="file" id="photoInput" accept="image/jpeg" multiple><br><br>
+        <div id="photoList"></div>
+      </div>
+
+    </div>
+
+    <!-- 地図 -->
+    <div id="map">
+      <div id="coordBox">Lat: ---, Lng: ---</div>
+      <div id="dropzone">画像をここにドロップ</div>
+    </div>
+
+  </div>
+
+  <!-- JSライブラリ（順番厳守） -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.js"></script>
+
+  <!-- Custom JS（map → photo の順） -->
+  <script src="map.js"></script>
+  <script src="remote-photos.js"></script>
+  <script src="photo.js"></script>
+
+</body>
+
+</html>
+
+
+
+
+
