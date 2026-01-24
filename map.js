@@ -256,10 +256,10 @@ function loadSCAN() {
 
 loadSCAN();
 
-/* ===== SCAN ラベルの表示制御（ズーム18以上で表示）===== */
+/* ===== SCAN ラベルの表示制御（ズーム20以上で表示）===== */
 map.on("zoomend", () => {
   const z = map.getZoom();
-  const show = z >= 18;
+  const show = z >= 20;
 
   layerSCAN.eachLayer(marker => {
     const tt = marker.getTooltip();
