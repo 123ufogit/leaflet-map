@@ -1,47 +1,47 @@
 /*
-  style.css version 1.0.0
-  Mobile Optimization Level: 2
+  style.css version 1.1.0
+  Geo Snap Viewer 360 — Mobile/PC Optimized Layout
 */
 
 /* ===== 全体 ===== */
 body {
   margin: 0;
   font-family: sans-serif;
-  overflow: hidden; /* スマホでのスクロール暴走を防ぐ */
+  overflow: hidden; /* 地図アプリではスクロール禁止が安定 */
 }
 
-/* ===== ヘッダー ===== */
+/* ===== ヘッダー（細く・固定） ===== */
 #header {
-  padding: 8px 12px;
-  background: #2c3e50;
-  color: #ecf0f1;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  /* 固定表示（スマホで消えない） */
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 40px;
-  z-index: 2000;
+
+  height: 32px;
+  padding: 4px 8px;
+
+  background: #2c3e50;
+  color: #ecf0f1;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 14px;
+
+  z-index: 3000; /* 最前面 */
 }
 
 .mobile-only {
   display: none;
 }
 
-/* ===== レイアウト ===== */
+/* ===== レイアウト（上下バーを除いた高さ） ===== */
 #container {
   display: flex;
-
-  /* ヘッダーの下に配置 */
-  margin-top: 40px;
-
-  /* スマホでも安定する高さ */
-  height: calc(100dvh - 40px);
+  height: calc(100dvh - 32px - 32px); /* header + footer */
+  margin-top: 32px;
+  margin-bottom: 32px;
 }
 
 /* ===== サイドバー ===== */
@@ -51,6 +51,8 @@ body {
   border-right: 1px solid #ccc;
   overflow-y: auto;
   position: relative;
+
+  z-index: 2500; /* フッターより前面 */
 }
 
 /* ===== タブ ===== */
@@ -159,6 +161,27 @@ body {
   transform: translate(-50%, -50%);
 }
 
+/* ===== フッター（細く・半透明・固定） ===== */
+#footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  height: 32px;
+  padding: 6px 0;
+
+  text-align: center;
+  font-size: 13px;
+
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+
+  border-top: 1px solid #ccc;
+
+  z-index: 1500; /* サイドバーより後ろ */
+}
+
 /* ===== スマホ最適化 ===== */
 @media (max-width: 768px) {
 
@@ -172,9 +195,13 @@ body {
     width: 80%;
     transform: translateX(-100%);
     position: absolute;
-    z-index: 1500;
     transition: transform 0.3s ease;
-    height: calc(100dvh - 40px); /* スマホでの高さ調整 */
+
+    /* 縦方向を縮める（余白を作る） */
+    height: calc(100dvh - 32px - 32px - 40px);
+    max-height: 80vh;
+
+    z-index: 2500;
   }
 
   #sidebar.open {
@@ -209,24 +236,6 @@ body {
 
 @media (max-width: 768px) {
   #dropzone {
-    display: none;
-  }
-}
-
-/* PC のときだけ印刷ボタンを表示 */
-.leaflet-control-easyPrint {
-  display: none;
-}
-
-@media (pointer: fine) {
-  .leaflet-control-easyPrint {
-    display: block;
-  }
-}
-
-/* 印刷時はボタンを非表示 */
-@media print {
-  .leaflet-control-easyPrint {
     display: none;
   }
 }
