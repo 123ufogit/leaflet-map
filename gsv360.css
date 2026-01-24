@@ -1,0 +1,54 @@
+/* 写真カード */
+.card {
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  padding: 6px;
+  border-radius: 4px;
+  background: #fff;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.thumb {
+  width: 100%;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  object-fit: cover;
+}
+
+/* パノラマ表示 */
+.pano-box {
+  width: 300px;
+  height: 200px;
+  background: #000;
+}
+
+/* 写真管理タブがドロップ中の強調 */
+#photoPanel.dragover {
+  background: rgba(0, 120, 255, 0.15);
+  border: 2px dashed #0078ff;
+}
+
+/* 360°タグ */
+.tag-360 {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  background: #007bff;
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+/* 削除ボタン */
+.delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  cursor: pointer;
+  color: #c00;
+  font-weight: bold;
+  font-size: 16px;
+}
