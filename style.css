@@ -1,10 +1,14 @@
 /*
-  style.css version 0.9.0
-  Mobile Optimization Level: 1
+  style.css version 1.0.0
+  Mobile Optimization Level: 2
 */
 
 /* ===== 全体 ===== */
-body { margin: 0; font-family: sans-serif; }
+body {
+  margin: 0;
+  font-family: sans-serif;
+  overflow: hidden; /* スマホでのスクロール暴走を防ぐ */
+}
 
 /* ===== ヘッダー ===== */
 #header {
@@ -15,18 +19,16 @@ body { margin: 0; font-family: sans-serif; }
   display: flex;
   align-items: center;
   gap: 6px;
+
+  /* 固定表示（スマホで消えない） */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  z-index: 2000;
 }
 
-#header input {
-  padding: 4px;
-  width: 220px;
-}
-
-#header button {
-  padding: 4px 8px;
-}
-
-/* スマホ用メニューボタン */
 .mobile-only {
   display: none;
 }
@@ -34,9 +36,15 @@ body { margin: 0; font-family: sans-serif; }
 /* ===== レイアウト ===== */
 #container {
   display: flex;
-  height: calc(100vh - 40px);
+
+  /* ヘッダーの下に配置 */
+  margin-top: 40px;
+
+  /* スマホでも安定する高さ */
+  height: calc(100dvh - 40px);
 }
 
+/* ===== サイドバー ===== */
 #sidebar {
   width: 300px;
   background: #f4f4f4;
@@ -85,9 +93,9 @@ body { margin: 0; font-family: sans-serif; }
 /* ===== 座標表示 ===== */
 #coordBox {
   position: absolute;
-  bottom: 10px;        /* 下からの距離 */
-  left: 50%;           /* 画面中央に寄せる */
-  transform: translateX(-50%); /* 中央揃え */
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(0,0,0,0.6);
   color: #fff;
   padding: 6px 10px;
@@ -96,34 +104,29 @@ body { margin: 0; font-family: sans-serif; }
   z-index: 1000;
 }
 
-/* MiniMap の位置を少し上にずらす */
+/* MiniMap の位置調整 */
 .leaflet-control-minimap {
   bottom: 5px !important;
   right: 5px !important;
 }
 
-/* ===== Google Maps 風 現在地ボタン ===== */
-/* PCでは非表示 */
+/* ===== 現在地ボタン ===== */
 #locateBtn {
   display: none;
 }
 
-/* スマホだけ表示 */
 @media (max-width: 768px) {
   #locateBtn {
     display: block;
   }
 }
 
-/* ボタンの見た目（Google Maps 風） */
 .locate-btn {
   position: absolute;
   bottom: 120px;
   right: 10px;
-
   width: 35px;
   height: 35px;
-
   background: white;
   border-radius: 50%;
   border: 2px solid #666;
@@ -132,7 +135,6 @@ body { margin: 0; font-family: sans-serif; }
   z-index: 500;
 }
 
-/* 中心の点 */
 .locate-btn::before {
   content: "";
   position: absolute;
@@ -145,7 +147,6 @@ body { margin: 0; font-family: sans-serif; }
   transform: translate(-50%, -50%);
 }
 
-/* 外側のリング */
 .locate-btn::after {
   content: "";
   position: absolute;
@@ -158,7 +159,7 @@ body { margin: 0; font-family: sans-serif; }
   transform: translate(-50%, -50%);
 }
 
-/* ===== スマホ最適化（Level 1） ===== */
+/* ===== スマホ最適化 ===== */
 @media (max-width: 768px) {
 
   .mobile-only {
@@ -171,8 +172,9 @@ body { margin: 0; font-family: sans-serif; }
     width: 80%;
     transform: translateX(-100%);
     position: absolute;
-    z-index: 1000;
+    z-index: 1500;
     transition: transform 0.3s ease;
+    height: calc(100dvh - 40px); /* スマホでの高さ調整 */
   }
 
   #sidebar.open {
@@ -185,33 +187,46 @@ body { margin: 0; font-family: sans-serif; }
   }
 }
 
-/* ===== 写真ドラッグ＆ドロップ用 Dropzone ===== */
+/* ===== Dropzone（PCのみ） ===== */
 #dropzone {
   position: absolute;
-  top: 25%;          /* 上から25% */
-  left: 25%;         /* 左から25% */
-  width: 50%;        /* 横幅50% */
-  height: 50%;       /* 高さ50% */
-
-  background: rgba(0,0,0,0);   /* 通常は透明 */
-  border: 2px dashed rgba(0,0,0,0); /* 通常は見えない */
-
-  pointer-events: none;        /* 通常は地図操作を邪魔しない */
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+  background: rgba(0,0,0,0);
+  border: 2px dashed rgba(0,0,0,0);
+  pointer-events: none;
   z-index: 1500;
   transition: background 0.2s, border 0.2s;
 }
 
-/* ドラッグ中だけ dropzone を有効化して半透明グレー表示 */
 #map.dragover #dropzone {
-  background: rgba(0,0,0,0.25);   /* 半透明グレー */
-  border: 2px dashed #666;        /* 枠線を表示 */
-  pointer-events: auto;           /* D&D を受け付ける */
+  background: rgba(0,0,0,0.25);
+  border: 2px dashed #666;
+  pointer-events: auto;
 }
 
-
-/* スマホでは邪魔なので非表示 */
 @media (max-width: 768px) {
   #dropzone {
+    display: none;
+  }
+}
+
+/* PC のときだけ印刷ボタンを表示 */
+.leaflet-control-easyPrint {
+  display: none;
+}
+
+@media (pointer: fine) {
+  .leaflet-control-easyPrint {
+    display: block;
+  }
+}
+
+/* 印刷時はボタンを非表示 */
+@media print {
+  .leaflet-control-easyPrint {
     display: none;
   }
 }

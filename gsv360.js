@@ -31,6 +31,16 @@ const map = L.map("map", {
   layers: [layerGSIstd]
 });
 
+/* =====印刷／保存ボタン（PCのみ）===== */
+L.easyPrint({
+  title: '地図を印刷／保存',
+  position: 'topleft',   // ズームボタンの右隣
+  sizeModes: ['Current', 'A4Portrait', 'A4Landscape'],
+  filename: 'geosnapviewer360-map',
+  exportOnly: false,     // false = 印刷ダイアログも開く
+  hideControlContainer: false
+}).addTo(map);
+
 /* ===== ベースレイヤー ===== */
 const layerOSM = L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
