@@ -14,3 +14,8 @@
   border: none;
   box-shadow: none;
 }
+/* ▼ tip（三角形）を透明化して非表示にする ▼ */
+.leaflet-tooltip.scan-label::before,
+.leaflet-tooltip.scan-label::after {
+  display: none !important;
+}
