@@ -116,33 +116,37 @@ document.getElementById("photoInput").onchange = function (e) {
 };
 
 /* ============================================================
-   中央 50% dropzone 対応（dragenter は mapDiv）
+   ドラッグ＆ドロップ（ドロップゾーン＝サイドバー全域）
    ============================================================ */
-const mapDiv = document.getElementById("map");
-const dropzone = document.getElementById("dropzone");
 
-/* dragenter → mapDiv に付ける（最重要） */
-mapDiv.addEventListener("dragenter", (e) => {
+const sidebar = document.getElementById("sidebar");
+const dropHint = document.getElementById("dropHint");
+
+/* dragenter */
+sidebar.addEventListener("dragenter", (e) => {
   e.preventDefault();
-  mapDiv.classList.add("dragover");
+  sidebar.classList.add("dragover");
 });
 
-/* dragover → dropzone に付ける */
-dropzone.addEventListener("dragover", (e) => {
+/* dragover */
+sidebar.addEventListener("dragover", (e) => {
   e.preventDefault();
 });
 
-/* dragleave → mapDiv に付ける */
-mapDiv.addEventListener("dragleave", () => {
-  mapDiv.classList.remove("dragover");
+/* dragleave */
+sidebar.addEventListener("dragleave", () => {
+  sidebar.classList.remove("dragover");
 });
 
-/* drop → dropzone に付ける */
-dropzone.addEventListener("drop", (e) => {
+/* drop */
+sidebar.addEventListener("drop", (e) => {
   e.preventDefault();
-  mapDiv.classList.remove("dragover");
+  sidebar.classList.remove("dragover");
 
   const files = e.dataTransfer.files;
+
+  if (dropHint) dropHint.style.display = "none";
+
   for (let file of files) {
     if (file.type.match("image.*")) {
       loadPhotoFile(file);
