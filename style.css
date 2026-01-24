@@ -212,3 +212,21 @@ body {
     display: none;
   }
 }
+
+/* PC のときだけ印刷ボタンを表示 */
+.leaflet-control-easyPrint {
+  display: none;
+}
+
+@media (pointer: fine) {
+  .leaflet-control-easyPrint {
+    display: block;
+  }
+}
+
+/* 印刷時はボタンを非表示 */
+@media print {
+  .leaflet-control-easyPrint {
+    display: none;
+  }
+}
