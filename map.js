@@ -212,20 +212,62 @@ fetch("data/TLS_area.geojson")
     }).eachLayer(layer => layerTLS.addLayer(layer));
   });
 
-/* ===== SCANエリア（WGS84 GeoJSON） ===== */
+/* ===== SCANエリア（CSVポイント）===== */
 const layerSCAN = L.layerGroup().addTo(map);
 
-fetch("data/scan.geojson")
-  .then(res => res.json())
-  .then(json => {
-    L.geoJSON(json, {
-      style: {
-        color: "#0066ff",   // 青いアウトライン
-        weight: 0.5,        // 細い枠線
-        fill: false         // 塗りつぶしなし
-      },
-    }).eachLayer(layer => layerTLS.addLayer(layer));
+function loadSCAN() {
+  layerSCAN.clearLayers();
+
+  fetch("data/scan.csv")
+    .then(res => res.text())
+    .then(text => {
+      const lines = text.trim().split("\n");
+      const header = lines[0].split(",");
+
+      lines.slice(1).forEach(line => {
+        const cols = line.split(",");
+        const row = {};
+        header.forEach((key, i) => row[key] = cols[i]);
+
+        const lon = parseFloat(row["経度"]);
+        const lat = parseFloat(row["緯度"]);
+        if (isNaN(lat) || isNaN(lon)) return;
+
+        // circleMarker（赤・半径4px）
+        const marker = L.circleMarker([lat, lon], {
+          radius: 4,
+          color: "#ff0000",
+          fillColor: "#ff0000",
+          fillOpacity: 0.8,
+          weight: 1
+        });
+
+        // ラベル（ScanNoのみ・接頭辞なし）
+        marker.bindTooltip(row["ScanNo"], {
+          permanent: true,
+          direction: "top",
+          className: "scan-label"
+        });
+
+        marker.addTo(layerSCAN);
+      });
+    });
+}
+
+loadSCAN();
+
+/* ===== SCAN ラベルの表示制御（ズーム18以上で表示）===== */
+map.on("zoomend", () => {
+  const z = map.getZoom();
+  const show = z >= 18;
+
+  layerSCAN.eachLayer(marker => {
+    const tt = marker.getTooltip();
+    if (!tt) return;
+    if (show) tt._container.style.display = "block";
+    else tt._container.style.display = "none";
   });
+});
 
 /* ===== 周辺施設（GeoJSON） ===== */
 const layerShuuhen = L.layerGroup().addTo(map);
