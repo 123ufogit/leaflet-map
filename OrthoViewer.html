@@ -192,27 +192,50 @@
     /* =========================
        5. GeoTIFF 読み込み
        ========================= */
-    async function loadGeoTIFF(arrayBuffer, name) {
-      if (geotiffLayer) {
-        map.removeLayer(geotiffLayer);
-        layerControl.removeLayer(geotiffLayer);
-      }
+async function loadGeoTIFF(arrayBuffer, name) {
+  if (geotiffLayer) {
+    map.removeLayer(geotiffLayer);
+    layerControl.removeLayer(geotiffLayer);
+  }
 
-      const georaster = await parseGeoraster(arrayBuffer);
+  // GeoTIFF を geotiff.js で読み込む
+  const tiff = await geotiff.fromArrayBuffer(arrayBuffer);
+  const image = await tiff.getImage();
+  const rasters = await image.readRasters();
+  const width = image.getWidth();
+  const height = image.getHeight();
 
-      geotiffLayer = new GeoRasterLayer({
-        georaster,
-        opacity: 0.8,
-        resolution: 256,
-      });
+  const tiepoint = image.getTiePoints()[0];
+  const pixelScale = image.getFileDirectory().ModelPixelScale;
 
-      geotiffLayer.addTo(map);
-      layerControl.addOverlay(geotiffLayer, `GeoTIFF: ${name}`);
+  const xmin = tiepoint.x;
+  const ymax = tiepoint.y;
+  const xmax = xmin + pixelScale[0] * width;
+  const ymin = ymax - pixelScale[1] * height;
 
-      const bounds = geotiffLayer.getBounds();
-      if (bounds.isValid()) map.fitBounds(bounds);
-    }
+  const georaster = {
+    rasterType: "geotiff",
+    values: rasters,
+    width,
+    height,
+    xmin,
+    xmax,
+    ymin,
+    ymax,
+  };
 
+  geotiffLayer = new GeoRasterLayer({
+    georaster,
+    opacity: 0.8,
+    resolution: 256,
+  });
+
+  geotiffLayer.addTo(map);
+  layerControl.addOverlay(geotiffLayer, `GeoTIFF: ${name}`);
+
+  const bounds = geotiffLayer.getBounds();
+  if (bounds.isValid()) map.fitBounds(bounds);
+}
     console.log("GeoTIFF 専用ビューワー 準備完了");
   </script>
 </body>
