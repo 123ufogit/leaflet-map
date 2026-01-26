@@ -175,24 +175,33 @@
         dropzone.classList.remove("dragover");
       });
     });
+    
+dropOverlay.addEventListener("drop", async (e) => {
+  const files = [...e.dataTransfer.files];
 
-    dropOverlay.addEventListener("drop", async (e) => {
-      const file = e.dataTransfer.files[0];
-      if (!file) return;
+  // TIFF と TFW を探す
+  const tiff = files.find(f => f.name.match(/\.(tif|tiff)$/i));
+  const tfw  = files.find(f => f.name.match(/\.tfw$/i));
 
-      if (!file.name.toLowerCase().match(/\.(tif|tiff)$/)) {
-        alert("GeoTIFF（.tif / .tiff）をドロップしてください");
-        return;
-      }
+  // TIFF + TFW の場合はこちらで処理
+  if (tiff && tfw) {
+    console.log("TIFF + TFW を検出しました");
+    const tiffURL = URL.createObjectURL(tiff);
+    const tfwText = await tfw.text();
+    loadTiffWithWorldFile(tiffURL, tfwText, tiff.name);
+    return;
+  }
 
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        await loadGeoTIFF(arrayBuffer, file.name);
-      } catch (err) {
-        console.error(err);
-        alert("GeoTIFF の読み込みに失敗しました");
-      }
-    });
+  // GeoTIFF として処理
+  if (tiff) {
+    console.log("GeoTIFF として読み込みます");
+    const arrayBuffer = await tiff.arrayBuffer();
+    await loadGeoTIFF(arrayBuffer, tiff.name);
+    return;
+  }
+
+  alert("TIFF または GeoTIFF をドロップしてください");
+});
 
     /* =========================
        5. GeoTIFF 読み込み
@@ -218,7 +227,55 @@
       if (bounds.isValid()) map.fitBounds(bounds);
     }
 
-    console.log("完全版 GeoTIFF ビューワー 準備完了");
+    function parseTFW(text) {
+  const [A, D, B, E, C, F] = text.trim().split(/\s+/).map(Number);
+
+  return {
+    pixelSizeX: A,
+    pixelSizeY: E,
+    topLeftX: C,
+    topLeftY: F
+  };
+}
+
+    async function loadTiffWithWorldFile(imageURL, tfwText, name = "TIFF") {
+  const tfw = parseTFW(tfwText);
+
+  const img = new Image();
+  img.src = imageURL;
+
+  img.onload = () => {
+    const width  = img.width;
+    const height = img.height;
+
+    const x1 = tfw.topLeftX;
+    const y1 = tfw.topLeftY;
+
+    const x2 = x1 + width  * tfw.pixelSizeX;
+    const y2 = y1 + height * tfw.pixelSizeY;
+
+    const bounds = [
+      [y2, x1], // southWest
+      [y1, x2]  // northEast
+    ];
+
+    // 既存レイヤ削除
+    if (geotiffLayer) {
+      map.removeLayer(geotiffLayer);
+      layerControl.removeLayer(geotiffLayer);
+      geotiffLayer = null;
+    }
+
+    const layer = L.imageOverlay(imageURL, bounds, { opacity: 0.8 });
+    layer.addTo(map);
+
+    layerControl.addOverlay(layer, `TIFF+TFW: ${name}`);
+
+    map.fitBounds(bounds);
+  };
+}
+    
+    console.log("完全版 GeoTIFF/TIFF ビューワー 準備完了");
   </script>
 </body>
 </html>
