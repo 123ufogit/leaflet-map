@@ -238,13 +238,18 @@ dropOverlay.addEventListener("drop", async (e) => {
   };
 }
 
-    async function loadTiffWithWorldFile(imageURL, tfwText, name = "TIFF") {
+async function loadTiffWithWorldFile(imageURL, tfwText, name = "TIFF") {
+  console.log("TFW 内容:", tfwText);
+
   const tfw = parseTFW(tfwText);
+  console.log("TFW 解析結果:", tfw);
 
   const img = new Image();
   img.src = imageURL;
 
   img.onload = () => {
+    console.log("TIFF 画像サイズ:", img.width, img.height);
+
     const width  = img.width;
     const height = img.height;
 
@@ -254,24 +259,31 @@ dropOverlay.addEventListener("drop", async (e) => {
     const x2 = x1 + width  * tfw.pixelSizeX;
     const y2 = y1 + height * tfw.pixelSizeY;
 
+    console.log("計算された座標:", { x1, y1, x2, y2 });
+
     const bounds = [
-      [y2, x1], // southWest
-      [y1, x2]  // northEast
+      [y2, x1],
+      [y1, x2]
     ];
 
-    // 既存レイヤ削除
-    if (geotiffLayer) {
-      map.removeLayer(geotiffLayer);
-      layerControl.removeLayer(geotiffLayer);
-      geotiffLayer = null;
+    console.log("Leaflet bounds:", bounds);
+
+    if (!isFinite(x1) || !isFinite(y1) || !isFinite(x2) || !isFinite(y2)) {
+      alert("TFW の座標が不正です。");
+      return;
     }
 
     const layer = L.imageOverlay(imageURL, bounds, { opacity: 0.8 });
     layer.addTo(map);
 
-    layerControl.addOverlay(layer, `TIFF+TFW: ${name}`);
+    console.log("TIFF レイヤ追加完了");
 
     map.fitBounds(bounds);
+  };
+
+  img.onerror = () => {
+    console.error("TIFF を画像として読み込めませんでした（ブラウザ非対応の可能性）");
+    alert("TIFF を画像として読み込めません。PNG/JPG に変換するか、GeoTIFF を使用してください。");
   };
 }
     
