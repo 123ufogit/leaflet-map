@@ -2,23 +2,15 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>GeoTIFF ビューワー＋作図ツール</title>
+  <title>GeoTIFF ビューワー＋作図ツール（完全版）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  ></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- Leaflet.draw -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 
   <!-- easyPrint -->
@@ -30,15 +22,13 @@
   <script src="https://unpkg.com/georaster-layer-for-leaflet@3.8.0/dist/georaster-layer-for-leaflet.min.js"></script>
 
   <style>
-    html,
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       width: 100%;
       overflow: hidden;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
+      font-family: sans-serif;
     }
 
     #map {
@@ -48,7 +38,7 @@
       z-index: 1;
     }
 
-    /* ドラッグ＆ドロップ用オーバーレイ */
+    /* ドラッグ＆ドロップ案内 */
     #dropzone {
       position: absolute;
       top: 10px;
@@ -66,7 +56,7 @@
       background: rgba(0, 120, 215, 0.8);
     }
 
-    /* 画面全体でドロップを受け付ける透明レイヤ */
+    /* 透明オーバーレイ（初期は無効） */
     #drop-overlay {
       position: absolute;
       top: 0;
@@ -74,7 +64,7 @@
       width: 100%;
       height: 100%;
       z-index: 999;
-      pointer-events: auto;
+      pointer-events: none; /* ← 重要：初期は無効 */
       background: transparent;
     }
 
@@ -89,146 +79,109 @@
       font-size: 12px;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     }
-
-    #toolbar button {
-      margin-right: 4px;
-      margin-bottom: 2px;
-      font-size: 12px;
-    }
   </style>
 </head>
 <body>
+
   <div id="map"></div>
 
-  <!-- ドラッグ＆ドロップのガイド表示 -->
   <div id="dropzone">ここに GeoTIFF をドラッグ＆ドロップ</div>
   <div id="drop-overlay"></div>
 
-  <!-- 簡易ツールバー（将来拡張用） -->
   <div id="toolbar">
-    <span><strong>操作:</strong></span>
-    <!-- easyPrint のボタンはプラグイン側で追加されるのでここは説明用 -->
-    <span>左上のプリンタアイコンから印刷</span>
+    <strong>操作:</strong> 左上のプリンタアイコンから印刷できます
   </div>
 
   <script>
-    // =========================
-    // 1. Leaflet マップの初期化
-    // =========================
+    /* =========================
+       1. Leaflet マップ初期化
+       ========================= */
     const map = L.map("map", {
-      center: [36.56, 136.65], // 金沢あたりを仮の初期中心に
+      center: [36.56, 136.65],
       zoom: 13,
       zoomControl: true,
     });
 
-    // 国土地理院タイル（標準地図）
     const gsiStd = L.tileLayer(
       "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
-      {
-        maxZoom: 18,
-        attribution: "地理院タイル",
-      }
+      { maxZoom: 18, attribution: "地理院タイル" }
     ).addTo(map);
 
-    // 航空写真も用意しておく（レイヤ切替用）
     const gsiOrt = L.tileLayer(
       "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
-      {
-        maxZoom: 18,
-        attribution: "地理院タイル（オルソ画像）",
-      }
+      { maxZoom: 18, attribution: "地理院タイル（オルソ画像）" }
     );
 
-    // ベースレイヤ切替
     const baseLayers = {
       "標準地図": gsiStd,
       "航空写真": gsiOrt,
     };
 
-    // 描画レイヤグループ（ポリゴンなど）
     const drawnItems = new L.FeatureGroup();
     map.addLayer(drawnItems);
 
-    // GeoTIFF レイヤ（後で差し替えられるように参照を保持）
     let geotiffLayer = null;
 
-    // レイヤコントロール
-    const overlays = {
-      "作図レイヤ": drawnItems,
-    };
-    const layerControl = L.control.layers(baseLayers, overlays, {
-      collapsed: true,
-    }).addTo(map);
+    const overlays = { "作図レイヤ": drawnItems };
+    const layerControl = L.control.layers(baseLayers, overlays).addTo(map);
 
-    // =========================
-    // 2. Leaflet.draw の設定
-    // =========================
+    /* =========================
+       2. Leaflet.draw
+       ========================= */
     const drawControl = new L.Control.Draw({
-      edit: {
-        featureGroup: drawnItems,
-        remove: true,
-      },
+      edit: { featureGroup: drawnItems, remove: true },
       draw: {
-        polygon: {
-          allowIntersection: false,
-          showArea: true,
-        },
+        polygon: { allowIntersection: false, showArea: true },
         polyline: true,
         rectangle: true,
+        marker: true,
         circle: false,
         circlemarker: false,
-        marker: true,
       },
     });
     map.addControl(drawControl);
 
-    map.on(L.Draw.Event.CREATED, function (e) {
-      const layer = e.layer;
-      drawnItems.addLayer(layer);
+    map.on(L.Draw.Event.CREATED, (e) => {
+      drawnItems.addLayer(e.layer);
     });
 
-    // =========================
-    // 3. easyPrint の設定
-    // =========================
-    const printer = L.easyPrint({
-      title: "印刷 / 画像保存",
+    /* =========================
+       3. easyPrint
+       ========================= */
+    L.easyPrint({
+      title: "印刷 / 保存",
       position: "topleft",
       sizeModes: ["Current", "A4Portrait", "A4Landscape"],
-      exportOnly: false, // true にすると印刷ダイアログなしで画像保存のみ
-      hideControlContainer: false,
     }).addTo(map);
 
-    // =========================
-    // 4. GeoTIFF ドラッグ＆ドロップ
-    // =========================
+    /* =========================
+       4. ドラッグ＆ドロップ
+       ========================= */
     const dropzone = document.getElementById("dropzone");
     const dropOverlay = document.getElementById("drop-overlay");
 
-    // ページ全体でドラッグオーバーを受け付ける
     ["dragenter", "dragover"].forEach((eventName) => {
-      dropOverlay.addEventListener(eventName, (e) => {
+      window.addEventListener(eventName, (e) => {
         e.preventDefault();
-        e.stopPropagation();
+        dropOverlay.style.pointerEvents = "auto";  // ← 有効化
         dropzone.classList.add("dragover");
       });
     });
 
     ["dragleave", "drop"].forEach((eventName) => {
-      dropOverlay.addEventListener(eventName, (e) => {
+      window.addEventListener(eventName, (e) => {
         e.preventDefault();
-        e.stopPropagation();
+        dropOverlay.style.pointerEvents = "none";  // ← 無効化
         dropzone.classList.remove("dragover");
       });
     });
 
     dropOverlay.addEventListener("drop", async (e) => {
-      const files = e.dataTransfer.files;
-      if (!files || files.length === 0) return;
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
 
-      const file = files[0];
-      if (!file.name.toLowerCase().endsWith(".tif") &&
-          !file.name.toLowerCase().endsWith(".tiff")) {
-        alert("GeoTIFF（.tif / .tiff）ファイルをドロップしてください。");
+      if (!file.name.toLowerCase().match(/\.(tif|tiff)$/)) {
+        alert("GeoTIFF（.tif / .tiff）をドロップしてください");
         return;
       }
 
@@ -237,19 +190,17 @@
         await loadGeoTIFF(arrayBuffer, file.name);
       } catch (err) {
         console.error(err);
-        alert("GeoTIFF の読み込みに失敗しました。ファイル形式を確認してください。");
+        alert("GeoTIFF の読み込みに失敗しました");
       }
     });
 
-    // =========================
-    // 5. GeoTIFF 読み込み関数
-    // =========================
-    async function loadGeoTIFF(arrayBuffer, name = "GeoTIFF") {
-      // 既存の GeoTIFF レイヤがあれば削除
+    /* =========================
+       5. GeoTIFF 読み込み
+       ========================= */
+    async function loadGeoTIFF(arrayBuffer, name) {
       if (geotiffLayer) {
         map.removeLayer(geotiffLayer);
         layerControl.removeLayer(geotiffLayer);
-        geotiffLayer = null;
       }
 
       const georaster = await parseGeoraster(arrayBuffer);
@@ -257,24 +208,17 @@
       geotiffLayer = new GeoRasterLayer({
         georaster,
         opacity: 0.8,
-        resolution: 256, // 値を小さくすると高解像度になるが重くなる
+        resolution: 256,
       });
 
       geotiffLayer.addTo(map);
       layerControl.addOverlay(geotiffLayer, `GeoTIFF: ${name}`);
 
-      // GeoTIFF の範囲にズーム
       const bounds = geotiffLayer.getBounds();
-      if (bounds.isValid()) {
-        map.fitBounds(bounds);
-      }
+      if (bounds.isValid()) map.fitBounds(bounds);
     }
 
-    // =========================
-    // 6. 初期メッセージ
-    // =========================
-    console.log("GeoTIFF ビューワー＋作図ツール 準備完了");
-    console.log("GeoTIFF ファイルをウィンドウ上にドラッグ＆ドロップしてください。");
+    console.log("完全版 GeoTIFF ビューワー 準備完了");
   </script>
 </body>
 </html>
