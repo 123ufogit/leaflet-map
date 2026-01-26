@@ -199,7 +199,7 @@ async function loadGeoTIFF(arrayBuffer, name) {
   }
 
   // GeoTIFF を geotiff.js で読み込む
-  const tiff = await geotiff.fromArrayBuffer(arrayBuffer);
+  const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
   const image = await tiff.getImage();
   const rasters = await image.readRasters();
   const width = image.getWidth();
