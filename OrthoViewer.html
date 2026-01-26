@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>GeoTIFF ビューワー＋作図ツール（完全版）</title>
+  <title>GeoTIFF ビューワー＋作図ツール</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Leaflet -->
@@ -38,7 +38,6 @@
       z-index: 1;
     }
 
-    /* ドラッグ＆ドロップ案内 */
     #dropzone {
       position: absolute;
       top: 10px;
@@ -56,7 +55,6 @@
       background: rgba(0, 120, 215, 0.8);
     }
 
-    /* 透明オーバーレイ（初期は無効） */
     #drop-overlay {
       position: absolute;
       top: 0;
@@ -64,7 +62,7 @@
       width: 100%;
       height: 100%;
       z-index: 999;
-      pointer-events: none; /* ← 重要：初期は無効 */
+      pointer-events: none;
       background: transparent;
     }
 
@@ -85,7 +83,7 @@
 
   <div id="map"></div>
 
-  <div id="dropzone">ここに GeoTIFF/TIFF/TFW をドラッグ＆ドロップ</div>
+  <div id="dropzone">ここに GeoTIFF をドラッグ＆ドロップ</div>
   <div id="drop-overlay"></div>
 
   <div id="toolbar">
@@ -155,7 +153,7 @@
     }).addTo(map);
 
     /* =========================
-       4. ドラッグ＆ドロップ
+       4. ドラッグ＆ドロップ（GeoTIFF のみ）
        ========================= */
     const dropzone = document.getElementById("dropzone");
     const dropOverlay = document.getElementById("drop-overlay");
@@ -163,7 +161,7 @@
     ["dragenter", "dragover"].forEach((eventName) => {
       window.addEventListener(eventName, (e) => {
         e.preventDefault();
-        dropOverlay.style.pointerEvents = "auto";  // ← 有効化
+        dropOverlay.style.pointerEvents = "auto";
         dropzone.classList.add("dragover");
       });
     });
@@ -171,37 +169,25 @@
     ["dragleave", "drop"].forEach((eventName) => {
       window.addEventListener(eventName, (e) => {
         e.preventDefault();
-        dropOverlay.style.pointerEvents = "none";  // ← 無効化
+        dropOverlay.style.pointerEvents = "none";
         dropzone.classList.remove("dragover");
       });
     });
-    
-dropOverlay.addEventListener("drop", async (e) => {
-  const files = [...e.dataTransfer.files];
 
-  // TIFF と TFW を探す
-  const tiff = files.find(f => f.name.match(/\.(tif|tiff)$/i));
-  const tfw  = files.find(f => f.name.match(/\.tfw$/i));
+    dropOverlay.addEventListener("drop", async (e) => {
+      const files = [...e.dataTransfer.files];
+      const geotiff = files.find(f => f.name.match(/\.(tif|tiff)$/i));
 
-  // TIFF + TFW の場合はこちらで処理
-  if (tiff && tfw) {
-    console.log("TIFF + TFW を検出しました");
-    const tiffURL = URL.createObjectURL(tiff);
-    const tfwText = await tfw.text();
-    loadTiffWithWorldFile(tiffURL, tfwText, tiff.name);
-    return;
-  }
+      if (!geotiff) {
+        alert("GeoTIFF をドロップしてください");
+        return;
+      }
 
-  // GeoTIFF として処理
-  if (tiff) {
-    console.log("GeoTIFF として読み込みます");
-    const arrayBuffer = await tiff.arrayBuffer();
-    await loadGeoTIFF(arrayBuffer, tiff.name);
-    return;
-  }
+      console.log("GeoTIFF 読み込み開始:", geotiff.name);
 
-  alert("TIFF または GeoTIFF をドロップしてください");
-});
+      const arrayBuffer = await geotiff.arrayBuffer();
+      await loadGeoTIFF(arrayBuffer, geotiff.name);
+    });
 
     /* =========================
        5. GeoTIFF 読み込み
@@ -227,67 +213,7 @@ dropOverlay.addEventListener("drop", async (e) => {
       if (bounds.isValid()) map.fitBounds(bounds);
     }
 
-    function parseTFW(text) {
-  const [A, D, B, E, C, F] = text.trim().split(/\s+/).map(Number);
-
-  return {
-    pixelSizeX: A,
-    pixelSizeY: E,
-    topLeftX: C,
-    topLeftY: F
-  };
-}
-
-async function loadTiffWithWorldFile(imageURL, tfwText, name = "TIFF") {
-  console.log("TFW 内容:", tfwText);
-
-  const tfw = parseTFW(tfwText);
-  console.log("TFW 解析結果:", tfw);
-
-  const img = new Image();
-  img.src = imageURL;
-
-  img.onload = () => {
-    console.log("TIFF 画像サイズ:", img.width, img.height);
-
-    const width  = img.width;
-    const height = img.height;
-
-    const x1 = tfw.topLeftX;
-    const y1 = tfw.topLeftY;
-
-    const x2 = x1 + width  * tfw.pixelSizeX;
-    const y2 = y1 + height * tfw.pixelSizeY;
-
-    console.log("計算された座標:", { x1, y1, x2, y2 });
-
-    const bounds = [
-      [y2, x1],
-      [y1, x2]
-    ];
-
-    console.log("Leaflet bounds:", bounds);
-
-    if (!isFinite(x1) || !isFinite(y1) || !isFinite(x2) || !isFinite(y2)) {
-      alert("TFW の座標が不正です。");
-      return;
-    }
-
-    const layer = L.imageOverlay(imageURL, bounds, { opacity: 0.8 });
-    layer.addTo(map);
-
-    console.log("TIFF レイヤ追加完了");
-
-    map.fitBounds(bounds);
-  };
-
-  img.onerror = () => {
-    console.error("TIFF を画像として読み込めませんでした（ブラウザ非対応の可能性）");
-    alert("TIFF を画像として読み込めません。PNG/JPG に変換するか、GeoTIFF を使用してください。");
-  };
-}
-    
-    console.log("完全版 GeoTIFF/TIFF ビューワー 準備完了");
+    console.log("GeoTIFF 専用ビューワー 準備完了");
   </script>
 </body>
 </html>
