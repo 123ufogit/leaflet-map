@@ -277,8 +277,7 @@ L.control.layers(
     "TLSエリア": layerTLS,
     "スキャン地点": layerSCAN,
     "森林調査": layerCSV,
-    "20mメッシュ": layerMesh20,
-    "周辺施設": layerShuuhen
+    "20mメッシュ": layerMesh20
   },
   { position: "bottomleft" }
 ).addTo(map);
