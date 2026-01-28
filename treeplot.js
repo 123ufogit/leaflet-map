@@ -7,6 +7,16 @@
     - レイヤコントロール（独立）
 */
 
+/* ===== TLSエリア（判定用：透明） ===== */
+let areaIndexLayer = null;
+
+fetch("data/TLS_area.geojson")
+  .then(res => res.json())
+  .then(json => {
+    areaIndexLayer = L.geoJSON(json, {
+      style: { color: "#000", weight: 1, fillOpacity: 0 } // 完全透明
+    });
+  });
 
 /* ===== TLSエリア（WGS84 GeoJSON） ===== */
 const layerTLS = L.layerGroup().addTo(map);  // CSV より前に追加 → 背面になる
@@ -75,6 +85,82 @@ function loadSCAN() {
 }
 
 loadSCAN();
+
+/* ===== エリアごとの CSV 読み込み ===== */
+function loadAreaData(folder) {
+  console.log("Loading:", folder);
+
+  // SCAN
+  layerSCAN.clearLayers();
+  fetch(`data/${folder}/scan.csv`)
+    .then(res => res.text())
+    .then(text => {
+      const lines = text.trim().split("\n");
+      const header = lines[0].split(",");
+      lines.slice(1).forEach(line => {
+        const cols = line.split(",");
+        const row = {};
+        header.forEach((k, i) => row[k] = cols[i]);
+
+        const lon = parseFloat(row["経度"]);
+        const lat = parseFloat(row["緯度"]);
+        if (isNaN(lat) || isNaN(lon)) return;
+
+        const marker = L.circleMarker([lat, lon], {
+          radius: 4,
+          color: "#ff0000",
+          fillColor: "#ff0000",
+          fillOpacity: 0.8,
+          weight: 1
+        });
+
+        marker.bindTooltip(row["ScanNo"], {
+          permanent: true,
+          direction: "top",
+          className: "scan-label"
+        });
+
+        marker.addTo(layerSCAN);
+      });
+    });
+
+  // TREES
+  layerCSV.clearLayers();
+  fetch(`data/${folder}/trees.csv`)
+    .then(res => res.text())
+    .then(text => {
+      const lines = text.trim().split("\n");
+      const header = lines[0].split(",");
+
+      lines.slice(1).forEach(line => {
+        const cols = line.split(",");
+        const row = {};
+        header.forEach((k, i) => row[k] = cols[i]);
+
+        const lon = parseFloat(row["経度"]);
+        const lat = parseFloat(row["緯度"]);
+        if (isNaN(lat) || isNaN(lon)) return;
+
+        let color = "#cccccc";
+        if (row["樹種"] === "スギ") color = "#99cc00";
+        if (row["樹種"] === "アテ") color = "#66ccff";
+
+        const girth = parseFloat(row["幹周"]);
+        const diameter = girth / Math.PI;
+        const markerRadius = diameter * 0.2;
+
+        const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
+
+        L.circleMarker([lat, lon], {
+          radius: markerRadius,
+          color,
+          fillColor: color,
+          fillOpacity,
+          weight: 0.5
+        }).addTo(layerCSV);
+      });
+    });
+}
 
 /* ===== SCAN ラベルの表示制御（ズーム20以上で表示）===== */
 map.on("zoomend", () => {
@@ -264,4 +350,29 @@ map.on("zoomend", () => {
 
   if (z >= 14) map.addLayer(layerCSV);
   else map.removeLayer(layerCSV);
+});
+
+/* ===== 中心点がどの TLS エリアに入ったか判定 ===== */
+let currentArea = null;
+
+map.on("moveend", () => {
+  if (!areaIndexLayer) return;
+
+  const c = map.getCenter();
+  const pt = turf.point([c.lng, c.lat]);
+
+  let newArea = null;
+
+  areaIndexLayer.eachLayer(layer => {
+    const feature = layer.feature;
+    if (turf.booleanPointInPolygon(pt, feature)) {
+      newArea = feature.properties["エリア"]; // A1_1 / A1_2 / B1_1
+    }
+  });
+
+  if (newArea && newArea !== currentArea) {
+    currentArea = newArea;
+    console.log("エリア切替:", currentArea);
+    loadAreaData(currentArea);
+  }
 });
