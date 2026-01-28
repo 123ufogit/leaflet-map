@@ -1,6 +1,5 @@
 /*
-  map.js version 0.9.1
-
+  treeplot.js version 0.9.1
   Contains:
     - 周辺施設レイヤ
     - CSVレイヤ（樹種色分け・間伐塗りつぶし切替）
