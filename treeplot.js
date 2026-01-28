@@ -17,6 +17,20 @@ fetch("data/TLS_area.geojson")
     });
   });
 
+/* ===== メッシュ20（EPSG:3857 GeoJSON） ===== */
+const layerMesh20 = L.layerGroup().addTo(map);
+fetch("data/mesh20.geojson")
+  .then(res => res.json())
+  .then(json => {
+    L.geoJSON(json, {
+      style: {
+        color: "#0066ff",   // 灰色
+        weight: 0.3,        // 細い線
+        fill: false         // 塗りつぶしなし
+      }
+    }).eachLayer(layer => layerMesh20.addLayer(layer));
+  });
+
 /* ===== TLSエリア（WGS84 GeoJSON） ===== */
 const layerTLS = L.layerGroup().addTo(map);  // CSV より前に追加 → 背面になる
 
