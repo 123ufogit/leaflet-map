@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>GeoTIFF ビューワー＋作図ツール（geotiff.js版）</title>
+  <title>GeoTIFF ビューワー＋作図ツール（leaflet-geotiff-2版）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Leaflet -->
@@ -16,8 +16,12 @@
   <!-- easyPrint -->
   <script src="https://unpkg.com/leaflet-easyprint@2.1.9/dist/bundle.js"></script>
 
-  <!-- geotiff.js（公式 CDN） -->
-  <script src="https://cdn.jsdelivr.net/npm/geotiff/dist/geotiff.bundle.min.js"></script>
+  <!-- geotiff.js（leaflet-geotiff-2 が要求するバージョン） -->
+  <script src="https://cdn.jsdelivr.net/npm/geotiff@1.0.0-beta.13/dist/geotiff.browser.min.js"></script>
+
+  <!-- leaflet-geotiff-2 本体＋RGB レンダラ -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-geotiff-2@1.1.0/dist/leaflet-geotiff.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-geotiff-2@1.1.0/dist/leaflet-geotiff-rgb.min.js"></script>
 
   <style>
     html, body {
@@ -122,7 +126,7 @@ L.easyPrint({
 }).addTo(map);
 
 /* =========================
-   4. ドラッグ＆ドロップ
+   4. ドラッグ＆ドロップ UI
    ========================= */
 const dropzone = document.getElementById("dropzone");
 const dropOverlay = document.getElementById("drop-overlay");
@@ -155,86 +159,42 @@ dropOverlay.addEventListener("drop", async (e) => {
   console.log("GeoTIFF 読み込み開始:", geotiff.name);
 
   const arrayBuffer = await geotiff.arrayBuffer();
-  await loadGeoTIFF(arrayBuffer, geotiff.name);
+  await loadGeoTIFFWithLeafletPlugin(arrayBuffer, geotiff.name);
 });
 
 /* =========================
-   5. geotiff.js による TIFF 読み込み
+   5. leaflet-geotiff-2 による GeoTIFF 表示
    ========================= */
-async function loadGeoTIFF(arrayBuffer, name) {
+async function loadGeoTIFFWithLeafletPlugin(arrayBuffer, name) {
+  // 既存レイヤの削除
   if (geotiffLayer) {
     map.removeLayer(geotiffLayer);
     layerControl.removeLayer(geotiffLayer);
+    geotiffLayer = null;
   }
 
-  const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
-  const image = await tiff.getImage();
-  const rasters = await image.readRasters();
-  const width = image.getWidth();
-  const height = image.getHeight();
+  // leaflet-geotiff-2 レイヤ生成（ローカル ArrayBuffer を使用）
+  geotiffLayer = L.leafletGeotiff(null, {
+    arrayBuffer: arrayBuffer,
+    sourceFunction: GeoTIFF.fromArrayBuffer,
+    renderer: new L.LeafletGeotiff.Rgb({
+      opacity: 0.8,
+    }),
+  });
 
-  const tiepoints = image.getTiePoints();
-  const fileDir = image.getFileDirectory();
-  const pixelScale = fileDir.ModelPixelScale;
-  const transform = fileDir.ModelTransformation;
-
-  let xmin, xmax, ymin, ymax;
-
-  if (transform) {
-    xmin = transform[3];
-    ymax = transform[7];
-    xmax = xmin + transform[0] * width;
-    ymin = ymax + transform[1] * height;
-  } else if (tiepoints && tiepoints.length > 0 && pixelScale) {
-    const tp = tiepoints[0];
-    xmin = tp.x;
-    ymax = tp.y;
-    xmax = xmin + pixelScale[0] * width;
-    ymin = ymax - pixelScale[1] * height;
-  } else {
-    alert("この GeoTIFF には位置情報がありません。表示できません。");
-    return;
-  }
-
-  const bounds = [
-    [ymin, xmin],
-    [ymax, xmax]
-  ];
-
-  const canvas = L.imageOverlay(
-    await rasterToDataURL(rasters, width, height),
-    bounds,
-    { opacity: 0.8 }
-  );
-
-  geotiffLayer = canvas;
   geotiffLayer.addTo(map);
   layerControl.addOverlay(geotiffLayer, `GeoTIFF: ${name}`);
-  map.fitBounds(bounds);
-}
 
-/* =========================
-   6. ラスター → PNG 変換
-   ========================= */
-async function rasterToDataURL(rasters, width, height) {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  const imgData = ctx.createImageData(width, height);
-
-  for (let i = 0; i < width * height; i++) {
-    imgData.data[i * 4 + 0] = rasters[0][i] || 0;
-    imgData.data[i * 4 + 1] = rasters[1]?.[i] || rasters[0][i] || 0;
-    imgData.data[i * 4 + 2] = rasters[2]?.[i] || rasters[0][i] || 0;
-    imgData.data[i * 4 + 3] = 255;
+  // GeoTIFF の範囲にズーム
+  const bounds = geotiffLayer.getBounds && geotiffLayer.getBounds();
+  if (bounds && bounds.isValid && bounds.isValid()) {
+    map.fitBounds(bounds);
+  } else {
+    console.warn("GeoTIFF の bounds を取得できませんでした");
   }
-
-  ctx.putImageData(imgData, 0, 0);
-  return canvas.toDataURL();
 }
 
-console.log("GeoTIFF ビューワー（geotiff.js版）準備完了");
+console.log("GeoTIFF ビューワー（leaflet-geotiff-2版・RGBのみ）準備完了");
 </script>
 
 </body>
