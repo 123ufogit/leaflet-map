@@ -1,200 +1,117 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>GeoTIFF ビューワー＋作図ツール（leaflet-geotiff-2版）</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="utf-8" />
+<title>GeoTIFF Viewer (georaster)</title>
 
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
 
-  <!-- Leaflet.draw -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
-  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<!-- georaster & georaster-layer-for-leaflet -->
+<script src="https://unpkg.com/georaster"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
 
-  <!-- easyPrint -->
-  <script src="https://unpkg.com/leaflet-easyprint@2.1.9/dist/bundle.js"></script>
-
-  <!-- geotiff.js（leaflet-geotiff-2 が要求するバージョン） -->
-  <script src="https://cdn.jsdelivr.net/npm/geotiff@1.0.0-beta.13/dist/geotiff.browser.min.js"></script>
-
-  <!-- leaflet-geotiff-2 本体＋RGB レンダラ -->
-  <script src="https://cdn.jsdelivr.net/npm/leaflet-geotiff-2@1.1.0/dist/leaflet-geotiff.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/leaflet-geotiff-2@1.1.0/dist/leaflet-geotiff-rgb.min.js"></script>
-
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      font-family: sans-serif;
-    }
-    #map { height: 100%; width: 100%; }
-    #dropzone {
-      position: absolute; top: 10px; right: 10px;
-      z-index: 1000; background: rgba(0,0,0,0.6);
-      color: #fff; padding: 8px 12px; border-radius: 4px;
-      font-size: 12px; pointer-events: none;
-    }
-    #dropzone.dragover { background: rgba(0,120,215,0.8); }
-    #drop-overlay {
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%; z-index: 999;
-      pointer-events: none; background: transparent;
-    }
-    #toolbar {
-      position: absolute; top: 10px; left: 10px;
-      z-index: 1001; background: rgba(255,255,255,0.9);
-      padding: 6px 10px; border-radius: 4px;
-      font-size: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-    }
-  </style>
+<style>
+  body, html {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+  #dropzone {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255,255,255,0.9);
+    padding: 10px;
+    border: 2px dashed #666;
+    border-radius: 6px;
+    z-index: 1000;
+  }
+</style>
 </head>
+
 <body>
 
-  <div id="map"></div>
-  <div id="dropzone">ここに GeoTIFF をドラッグ＆ドロップ</div>
-  <div id="drop-overlay"></div>
+<div id="dropzone">
+  <div>GeoTIFF を選択 or ドラッグ＆ドロップ</div>
+  <input type="file" id="fileInput" accept=".tif,.tiff" />
+</div>
 
-  <div id="toolbar">
-    <strong>操作:</strong> 左上のプリンタアイコンから印刷できます
-  </div>
+<div id="map"></div>
 
 <script>
-/* =========================
-   1. Leaflet マップ初期化
-   ========================= */
+// ------------------------------
+// Leaflet マップ初期化
+// ------------------------------
 const map = L.map("map", {
-  center: [36.56, 136.65],
-  zoom: 13,
-  zoomControl: true,
+  center: [37.0, 137.0],
+  zoom: 5
 });
 
-const gsiStd = L.tileLayer(
-  "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
-  { maxZoom: 18, attribution: "地理院タイル" }
-).addTo(map);
-
-const gsiOrt = L.tileLayer(
-  "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
-  { maxZoom: 18, attribution: "地理院タイル（オルソ画像）" }
-);
-
-const baseLayers = {
-  "標準地図": gsiStd,
-  "航空写真": gsiOrt,
-};
-
-const drawnItems = new L.FeatureGroup();
-map.addLayer(drawnItems);
-
-let geotiffLayer = null;
-
-const overlays = { "作図レイヤ": drawnItems };
-const layerControl = L.control.layers(baseLayers, overlays).addTo(map);
-
-/* =========================
-   2. Leaflet.draw
-   ========================= */
-const drawControl = new L.Control.Draw({
-  edit: { featureGroup: drawnItems, remove: true },
-  draw: {
-    polygon: { allowIntersection: false, showArea: true },
-    polyline: true,
-    rectangle: true,
-    marker: true,
-    circle: false,
-    circlemarker: false,
-  },
-});
-map.addControl(drawControl);
-
-map.on(L.Draw.Event.CREATED, (e) => {
-  drawnItems.addLayer(e.layer);
-});
-
-/* =========================
-   3. easyPrint
-   ========================= */
-L.easyPrint({
-  title: "印刷 / 保存",
-  position: "topleft",
-  sizeModes: ["Current", "A4Portrait", "A4Landscape"],
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "© OpenStreetMap contributors"
 }).addTo(map);
 
-/* =========================
-   4. ドラッグ＆ドロップ UI
-   ========================= */
-const dropzone = document.getElementById("dropzone");
-const dropOverlay = document.getElementById("drop-overlay");
+let currentLayer = null;
 
-["dragenter", "dragover"].forEach((eventName) => {
-  window.addEventListener(eventName, (e) => {
-    e.preventDefault();
-    dropOverlay.style.pointerEvents = "auto";
-    dropzone.classList.add("dragover");
-  });
-});
+// ------------------------------
+// GeoTIFF を読み込んで表示する関数
+// ------------------------------
+async function loadGeoTIFF(arrayBuffer) {
+  const georaster = await parseGeoraster(arrayBuffer);
 
-["dragleave", "drop"].forEach((eventName) => {
-  window.addEventListener(eventName, (e) => {
-    e.preventDefault();
-    dropOverlay.style.pointerEvents = "none";
-    dropzone.classList.remove("dragover");
-  });
-});
-
-dropOverlay.addEventListener("drop", async (e) => {
-  const files = [...e.dataTransfer.files];
-  const geotiff = files.find(f => f.name.match(/\.(tif|tiff)$/i));
-
-  if (!geotiff) {
-    alert("GeoTIFF をドロップしてください");
-    return;
+  if (currentLayer) {
+    map.removeLayer(currentLayer);
   }
 
-  console.log("GeoTIFF 読み込み開始:", geotiff.name);
-
-  const arrayBuffer = await geotiff.arrayBuffer();
-  await loadGeoTIFFWithLeafletPlugin(arrayBuffer, geotiff.name);
-});
-
-/* =========================
-   5. leaflet-geotiff-2 による GeoTIFF 表示
-   ========================= */
-async function loadGeoTIFFWithLeafletPlugin(arrayBuffer, name) {
-  // 既存レイヤの削除
-  if (geotiffLayer) {
-    map.removeLayer(geotiffLayer);
-    layerControl.removeLayer(geotiffLayer);
-    geotiffLayer = null;
-  }
-
-  // leaflet-geotiff-2 レイヤ生成（ローカル ArrayBuffer を使用）
-  geotiffLayer = L.leafletGeotiff(null, {
-    arrayBuffer: arrayBuffer,
-    sourceFunction: GeoTIFF.fromArrayBuffer,
-    renderer: new L.LeafletGeotiff.Rgb({
-      opacity: 0.8,
-    }),
+  currentLayer = new GeoRasterLayer({
+    georaster,
+    opacity: 0.8
   });
 
-  geotiffLayer.addTo(map);
-  layerControl.addOverlay(geotiffLayer, `GeoTIFF: ${name}`);
-
-  // GeoTIFF の範囲にズーム
-  const bounds = geotiffLayer.getBounds && geotiffLayer.getBounds();
-  if (bounds && bounds.isValid && bounds.isValid()) {
-    map.fitBounds(bounds);
-  } else {
-    console.warn("GeoTIFF の bounds を取得できませんでした");
-  }
+  currentLayer.addTo(map);
+  map.fitBounds(currentLayer.getBounds());
 }
 
-console.log("GeoTIFF ビューワー（leaflet-geotiff-2版・RGBのみ）準備完了");
+// ------------------------------
+// ファイル選択で読み込み
+// ------------------------------
+document.getElementById("fileInput").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const arrayBuffer = await file.arrayBuffer();
+  loadGeoTIFF(arrayBuffer);
+});
+
+// ------------------------------
+// ドラッグ＆ドロップ対応
+// ------------------------------
+const dropzone = document.getElementById("dropzone");
+
+dropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropzone.style.background = "rgba(200,255,200,0.9)";
+});
+
+dropzone.addEventListener("dragleave", () => {
+  dropzone.style.background = "rgba(255,255,255,0.9)";
+});
+
+dropzone.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  dropzone.style.background = "rgba(255,255,255,0.9)";
+
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+
+  const arrayBuffer = await file.arrayBuffer();
+  loadGeoTIFF(arrayBuffer);
+});
 </script>
 
 </body>
