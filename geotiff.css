@@ -1,0 +1,57 @@
+/* ----------------------------------------
+   全体レイアウト
+---------------------------------------- */
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ----------------------------------------
+   地図エリア
+---------------------------------------- */
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+/* ----------------------------------------
+   ドロップゾーン（画面上部中央）
+---------------------------------------- */
+#dropzone {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 14px;
+  border: 2px dashed #666;
+  border-radius: 6px;
+  z-index: 1000;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* ドロップ時の色変化（JS で背景色変更する場合の補助） */
+#dropzone.dragover {
+  background: rgba(200, 255, 200, 0.9);
+}
+
+/* ----------------------------------------
+   GeoJSON / KML 保存ボタン（左側）
+---------------------------------------- */
+#export-buttons {
+  position: absolute;
+  top: 70px;      /* 印刷ボタンの下に配置 */
+  left: 10px;
+  z-index: 1000;
+}
+
+#export-buttons button {
+  display: block;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  width: 130px;
+  font-size: 14px;
+  cursor: pointer;
+}
