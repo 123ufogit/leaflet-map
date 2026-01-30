@@ -23,7 +23,6 @@ const NorthControl = L.Control.extend({
   options: { position: "topright" },
   onAdd: function (map) {
     const div = L.DomUtil.create("div", "leaflet-control-north");
-    div.innerHTML = "N";
     return div;
   }
 });
