@@ -39,11 +39,10 @@ html, body {
 
 /* ----------------------------------------
    GeoJSON / KML 保存ボタン（左側）
-   Leaflet.draw のツールバーと重ならないように調整
 ---------------------------------------- */
 #export-buttons {
   position: absolute;
-  top: 120px;     /* ← 作図ツールと印刷ボタンの下に配置 */
+  top: 120px;     /* 作図ツールの下に配置 */
   left: 10px;
   z-index: 1000;
 }
@@ -61,7 +60,7 @@ html, body {
 }
 
 /* ----------------------------------------
-   スマホ対応（画面幅が狭い場合）
+   スマホ対応
 ---------------------------------------- */
 @media (max-width: 600px) {
   #dropzone {
@@ -72,7 +71,7 @@ html, body {
   }
 
   #export-buttons {
-    top: 150px;   /* スマホではさらに下げて重なり防止 */
+    top: 150px;
     left: 10px;
   }
 
@@ -82,7 +81,9 @@ html, body {
   }
 }
 
-/* 矢印デザインの方位記号 */
+/* ----------------------------------------
+   方位記号（矢印デザイン）
+---------------------------------------- */
 .leaflet-control-north {
   position: relative;
   width: 50px;
@@ -120,22 +121,11 @@ html, body {
   color: #333;
 }
 
-/* スケールバーを中央下に移動 */
+/* ----------------------------------------
+   スケールバーを中央下に移動
+---------------------------------------- */
 .leaflet-control-scale {
   left: 50% !important;
   transform: translateX(-50%);
   bottom: 10px !important;
-}
-
-/* 既存の CSS に追加 */
-.leaflet-control-north {
-  background: rgba(255,255,255,0.85);
-  border: 2px solid #333;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  text-align: center;
-  line-height: 36px;
-  font-size: 20px;
-  font-weight: bold;
 }
