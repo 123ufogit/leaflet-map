@@ -59,27 +59,6 @@ html, body {
   border-radius: 4px;
 }
 
-/* ----------------------------------------
-   スマホ対応
----------------------------------------- */
-@media (max-width: 600px) {
-  #dropzone {
-    width: 90%;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: normal;
-  }
-
-  #export-buttons {
-    top: 150px;
-    left: 10px;
-  }
-
-  #export-buttons button {
-    width: 150px;
-    font-size: 15px;
-  }
-}
 
 /* ----------------------------------------
    方位記号（矢印デザイン）
