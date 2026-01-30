@@ -465,6 +465,13 @@ dropzone.addEventListener("drop", async (e) => {
   }
 });
 
+  // スケールバー（中央下）
+L.control.scale({
+  position: "bottomleft",
+  imperial: false
+}).addTo(map);
+
+  
 /* ===============================
    13. GeoJSON / KML 保存
 ================================ */
