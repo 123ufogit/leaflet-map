@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>GeoTIFF Viewer (georaster + tools)</title>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Leaflet.draw -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+<!-- easyPrint -->
+<script src="https://unpkg.com/leaflet-easyprint@2.1.9/dist/bundle.js"></script>
+
+<!-- georaster & georaster-layer-for-leaflet -->
+<script src="https://unpkg.com/georaster"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+
+<!-- tokml（GeoJSON → KML 変換） -->
+<script src="https://unpkg.com/tokml/tokml.js"></script>
+
+<style>
+  body, html {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+  #dropzone {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255,255,255,0.9);
+    padding: 10px;
+    border: 2px dashed #666;
+    border-radius: 6px;
+    z-index: 1000;
+  }
+  #export-buttons {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+  }
+  #export-buttons button {
+    display: block;
+    margin-bottom: 6px;
+    padding: 6px 10px;
+  }
+</style>
+</head>
+
+<body>
+
+<div id="dropzone">
+  <div>GeoTIFF を選択 or ドラッグ＆ドロップ</div>
+  <input type="file" id="fileInput" accept=".tif,.tiff" />
+</div>
+
+<!-- GeoJSON / KML 出力ボタン -->
+<div id="export-buttons">
+  <button onclick="downloadGeoJSON()">GeoJSON 保存</button>
+  <button onclick="downloadKML()">KML 保存</button>
+</div>
+
+<div id="map"></div>
+
+<script>
+// ------------------------------
+// 1. Leaflet マップ初期化
+// ------------------------------
+const map = L.map("map", {
+  center: [36.56, 136.65],
+  zoom: 13
+});
+
+// 地理院タイル
+const gsiStd = L.tileLayer(
+  "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
+  { maxZoom: 18, attribution: "地理院タイル" }
+).addTo(map);
+
+const gsiOrt = L.tileLayer(
+  "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
+  { maxZoom: 18, attribution: "地理院タイル（オルソ画像）" }
+);
+
+// 作図レイヤ
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+// レイヤーコントロール
+L.control.layers(
+  { "標準地図": gsiStd, "航空写真": gsiOrt },
+  { "作図レイヤ": drawnItems }
+).addTo(map);
+
+// ------------------------------
+// 2. Leaflet.draw
+// ------------------------------
+const drawControl = new L.Control.Draw({
+  edit: { featureGroup: drawnItems, remove: true },
+  draw: {
+    polygon: { allowIntersection: false, showArea: true },
+    polyline: true,
+    rectangle: true,
+    marker: true,
+    circle: false,
+    circlemarker: false
+  }
+});
+map.addControl(drawControl);
+
+map.on(L.Draw.Event.CREATED, (e) => {
+  drawnItems.addLayer(e.layer);
+});
+
+// ------------------------------
+// 3. easyPrint
+// ------------------------------
+L.easyPrint({
+  title: "印刷 / 保存",
+  position: "topleft",
+  sizeModes: ["Current", "A4Portrait", "A4Landscape"]
+}).addTo(map);
+
+// ------------------------------
+// 4. GeoTIFF 読み込み（georaster）
+// ------------------------------
+let currentLayer = null;
+
+async function loadGeoTIFF(arrayBuffer) {
+  const georaster = await parseGeoraster(arrayBuffer, {
+    buildPyramid: false
+  });
+
+  if (currentLayer) {
+    map.removeLayer(currentLayer);
+  }
+
+  currentLayer = new GeoRasterLayer({
+    georaster,
+    opacity: 0.8,
+    resolution: 128,
+    updateWhenZooming: true,
+    updateInterval: 0,
+    keepBuffer: 5
+  });
+
+  currentLayer.addTo(map);
+  map.fitBounds(currentLayer.getBounds());
+}
+
+// ------------------------------
+// 5. ファイル選択
+// ------------------------------
+document.getElementById("fileInput").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const arrayBuffer = await file.arrayBuffer();
+  loadGeoTIFF(arrayBuffer);
+});
+
+// ------------------------------
+// 6. ドラッグ＆ドロップ
+// ------------------------------
+const dropzone = document.getElementById("dropzone");
+
+dropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropzone.style.background = "rgba(200,255,200,0.9)";
+});
+
+dropzone.addEventListener("dragleave", () => {
+  dropzone.style.background = "rgba(255,255,255,0.9)";
+});
+
+dropzone.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  dropzone.style.background = "rgba(255,255,255,0.9)";
+
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+
+  const arrayBuffer = await file.arrayBuffer();
+  loadGeoTIFF(arrayBuffer);
+});
+
+// ------------------------------
+// 7. GeoJSON 保存
+// ------------------------------
+function downloadGeoJSON() {
+  const geojson = drawnItems.toGeoJSON();
+  const blob = new Blob([JSON.stringify(geojson)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "drawings.geojson";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+// ------------------------------
+// 8. KML 保存
+// ------------------------------
+function downloadKML() {
+  const geojson = drawnItems.toGeoJSON();
+  const kml = tokml(geojson);
+
+  const blob = new Blob([kml], { type: "application/vnd.google-earth.kml+xml" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "drawings.kml";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
