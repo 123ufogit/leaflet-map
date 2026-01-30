@@ -30,19 +30,20 @@ html, body {
   z-index: 1000;
   text-align: center;
   font-size: 14px;
+  white-space: nowrap;
 }
 
-/* ドロップ時の色変化（JS で背景色変更する場合の補助） */
 #dropzone.dragover {
   background: rgba(200, 255, 200, 0.9);
 }
 
 /* ----------------------------------------
    GeoJSON / KML 保存ボタン（左側）
+   Leaflet.draw のツールバーと重ならないように調整
 ---------------------------------------- */
 #export-buttons {
   position: absolute;
-  top: 70px;      /* 印刷ボタンの下に配置 */
+  top: 120px;     /* ← 作図ツールと印刷ボタンの下に配置 */
   left: 10px;
   z-index: 1000;
 }
@@ -51,7 +52,32 @@ html, body {
   display: block;
   margin-bottom: 6px;
   padding: 6px 10px;
-  width: 130px;
+  width: 140px;
   font-size: 14px;
   cursor: pointer;
+  border: 1px solid #888;
+  background: white;
+  border-radius: 4px;
+}
+
+/* ----------------------------------------
+   スマホ対応（画面幅が狭い場合）
+---------------------------------------- */
+@media (max-width: 600px) {
+  #dropzone {
+    width: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: normal;
+  }
+
+  #export-buttons {
+    top: 150px;   /* スマホではさらに下げて重なり防止 */
+    left: 10px;
+  }
+
+  #export-buttons button {
+    width: 150px;
+    font-size: 15px;
+  }
 }
