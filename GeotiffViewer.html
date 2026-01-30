@@ -70,7 +70,7 @@ async function loadGeoTIFF(arrayBuffer) {
 
   currentLayer = new GeoRasterLayer({
     georaster,
-    opacity: 0.8
+    opacity: 0.8,
     resolution: 16, // ★ 高解像度化
     updateWhenZooming: true,// ★ ズーム時のぼやけ防止（推奨）
     updateInterval: 0, // ★ ズーム中も即時更新
