@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>GeoTIFF Viewer (georaster + tools)</title>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Leaflet.draw -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+<!-- easyPrint -->
+<script src="https://unpkg.com/leaflet-easyprint@2.1.9/dist/bundle.js"></script>
+
+<!-- georaster & georaster-layer-for-leaflet -->
+<script src="https://unpkg.com/georaster"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+
+<!-- GeoJSON ⇄ KML 変換 -->
+<script src="https://unpkg.com/tokml/tokml.js"></script>
+<script src="https://unpkg.com/togeojson@0.16.0/dist/togeojson.js"></script>
+
+<!-- 外部CSS -->
+<link rel="stylesheet" href="geotiff.css" />
+
+</head>
+
+<body>
+
+<!-- ドロップエリア（画面上部中央） -->
+<div id="dropzone">
+  <div>GeoTIFF / GeoJSON / KML を選択 or ドラッグ＆ドロップ</div>
+  <input type="file" id="fileInput" />
+</div>
+
+<!-- 保存ボタン（左側） -->
+<div id="export-buttons">
+  <button onclick="downloadGeoJSON()">GeoJSON 保存</button>
+  <button onclick="downloadKML()">KML 保存</button>
+</div>
+
+<div id="map"></div>
+
+<script>
+// ------------------------------
+// 1. Leaflet マップ初期化
+// ------------------------------
+const map = L.map("map", {
+  center: [36.56, 136.65],
+  zoom: 13
+});
+
+// GeoTIFF 用 pane（ベースレイヤーより上）
+map.createPane("geotiffPane");
+map.getPane("geotiffPane").style.zIndex = 450;
+
+// 地理院タイル
+const gsiStd = L.tileLayer(
+  "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
+  { maxZoom: 18, attribution: "地理院タイル" }
+).addTo(map);
+
+const gsiOrt = L.tileLayer(
+  "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
+  { maxZoom: 18, attribution: "地理院タイル（オルソ画像）" }
+);
+
+// 作図レイヤ
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+// レイヤーコントロール
+L.control.layers(
+  { "標準地図": gsiStd, "航空写真": gsiOrt },
+  { "作図レイヤ": drawnItems }
+).addTo(map);
+
+// ------------------------------
+// 2. Leaflet.draw
+// ------------------------------
+const drawControl = new L.Control.Draw({
+  edit: { featureGroup: drawnItems, remove: true },
+  draw: {
+    polygon: { allowIntersection: false, showArea: true },
+    polyline: true,
+    rectangle: true,
+    marker: true,
+    circle: false,
+    circlemarker: false
+  }
+});
+map.addControl(drawControl);
+
+map.on(L.Draw.Event.CREATED, (e) => {
+  drawnItems.addLayer(e.layer);
+});
+
+// ------------------------------
+// 3. easyPrint
+// ------------------------------
+L.easyPrint({
+  title: "印刷 / 保存",
+  position: "topleft",
+  sizeModes: ["Current", "A4Portrait", "A4Landscape"]
+}).addTo(map);
+
+// ------------------------------
+// 4. GeoTIFF 読み込み
+// ------------------------------
+let currentLayer = null;
+
+async function loadGeoTIFF(arrayBuffer) {
+  const georaster = await parseGeoraster(arrayBuffer, {
+    buildPyramid: false
+  });
+
+  if (currentLayer) {
+    map.removeLayer(currentLayer);
+  }
+
+  currentLayer = new GeoRasterLayer({
+    georaster,
+    opacity: 0.8,
+    resolution: 128,
+    updateWhenZooming: true,
+    updateInterval: 0,
+    keepBuffer: 5,
+    pane: "geotiffPane"   // ★ ベースレイヤーより上に表示
+  });
+
+  currentLayer.addTo(map);
+  map.fitBounds(currentLayer.getBounds());
+}
+
+// ------------------------------
+// 5. ファイル種別を自動判定
+// ------------------------------
+async function handleFile(file) {
+  const name = file.name.toLowerCase();
+
+  if (name.endsWith(".tif") || name.endsWith(".tiff")) {
+    const arrayBuffer = await file.arrayBuffer();
+    await loadGeoTIFF(arrayBuffer);
+    return;
+  }
+
+  if (name.endsWith(".geojson") || name.endsWith(".json")) {
+    const text = await file.text();
+    const geojson = JSON.parse(text);
+    const layer = L.geoJSON(geojson);
+    layer.eachLayer((l) => drawnItems.addLayer(l));
+    alert("GeoJSON を読み込みました");
+    return;
+  }
+
+  if (name.endsWith(".kml")) {
+    const text = await file.text();
+    const parser = new DOMParser();
+    const kmlDom = parser.parseFromString(text, "text/xml");
+    const geojson = toGeoJSON.kml(kmlDom);
+    const layer = L.geoJSON(geojson);
+    layer.eachLayer((l) => drawnItems.addLayer(l));
+    alert("KML を読み込みました");
+    return;
+  }
+
+  alert("対応していないファイル形式です");
+}
+
+// ------------------------------
+// 6. ファイル選択
+// ------------------------------
+document.getElementById("fileInput").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  handleFile(file);
+});
+
+// ------------------------------
+// 7. ドラッグ＆ドロップ
+// ------------------------------
+const dropzone = document.getElementById("dropzone");
+
+dropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropzone.classList.add("dragover");
+});
+
+dropzone.addEventListener("dragleave", () => {
+  dropzone.classList.remove("dragover");
+});
+
+dropzone.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  dropzone.classList.remove("dragover");
+
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+
+  handleFile(file);
+});
+
+// ------------------------------
+// 8. GeoJSON 保存
+// ------------------------------
+function downloadGeoJSON() {
+  const geojson = drawnItems.toGeoJSON();
+  const blob = new Blob([JSON.stringify(geojson)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "drawings.geojson";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+// ------------------------------
+// 9. KML 保存
+// ------------------------------
+function downloadKML() {
+  const geojson = drawnItems.toGeoJSON();
+  const kml = tokml(geojson);
+
+  const blob = new Blob([kml], { type: "application/vnd.google-earth.kml+xml" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "drawings.kml";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
