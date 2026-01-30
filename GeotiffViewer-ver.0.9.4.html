@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>GeoTIFF Viewer 0.9.3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+
+<style>
+  /* 全体レイアウト */
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: sans-serif;
+  }
+
+  /* コンテナ（サイドバー + 地図） */
+  #container {
+    display: flex;
+    height: calc(100% - 60px); /* フッター分を除く */
+  }
+
+  /* サイドバー */
+  #sidebar {
+    width: 260px;
+    background: #f4f4f4;
+    border-right: 1px solid #ccc;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+
+  /* 地図エリア */
+  #map {
+    flex: 1;
+    height: 100%;
+  }
+  
+  /* ドロップゾーン（画面上部中央） */
+  #dropzone {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 12px;
+    border: 2px dashed #666;
+    border-radius: 6px;
+    z-index: 1000;
+    text-align: center;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  #dropzone.dragover {
+    background: rgba(200, 255, 200, 0.95);
+  }
+
+  #dropzone input[type="file"] {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+
+  /* GeoJSON / KML 保存ボタン（Leaflet.draw の下） */
+  #export-buttons {
+    position: absolute;
+    top: 60px;   /* draw ツールバーのすぐ下 */
+    left: 10px;
+    z-index: 999;
+  }
+
+  #export-buttons button {
+    display: block;
+    margin-bottom: 4px;
+    padding: 4px 8px;
+    width: 100px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid #888;
+    background: #fff;
+    border-radius: 4px;
+  }
+
+  /* 座標表示（サイドバー内） */
+  #coordBox {
+    margin-top: 20px;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  /* 十字線アイコン */
+  .crosshair-icon {
+    font-size: 24px;
+    font-weight: bold;
+    color: red;
+  }
+
+  /* フッター（半透明） */
+  #footer {
+    height: 60px;
+    background: rgba(255, 255, 255, 0.7);
+    border-top: 1px solid rgba(0, 0, 0, 0.2);
+    text-align: center;
+    padding-top: 10px;
+    box-sizing: border-box;
+    backdrop-filter: blur(4px);
+  }
+
+  @media print {
+    #dropzone,
+    #export-buttons {
+      display: none;
+    }
+  }
+</style>
+
+</head>
+
+<body>
+
+<div id="container">
+
+  <!-- 左サイドバー -->
+  <div id="sidebar">
+    <h3>GeoTIFF Viewer 0.9.3</h3>
+    <p>GeoTIFF / GeoJSON を地図上で重ね合わせて確認できます。</p>
+
+    <h4>現在の中心座標</h4>
+    <div id="coordBox">Lat: ---, Lng: ---</div>
+  </div>
+
+  <!-- 地図 -->
+  <div id="map">
+    <!-- ドロップエリア（上部中央） -->
+    <div id="dropzone">
+      <div>GeoTIFF / GeoJSON を選択 or ドラッグ＆ドロップ</div>
+      <input
+        type="file"
+        id="fileInput"
+        multiple
+        accept=".tif,.tiff,.geojson,.json,.kml"
+      />
+    </div>
+
+    <!-- 保存ボタン（Leaflet.draw の下） -->
+    <div id="export-buttons">
+      <button id="btnSaveGeoJSON">GeoJSON</button>
+      <button id="btnSaveKML">KML</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- フッター -->
+<footer id="footer">
+  <a href="privacy-policy.html" style="margin-right:10px;">プライバシーポリシー</a>
+  |
+  <a href="terms.html" style="margin-left:10px;">利用規約</a>
+  <div style="margin-top:6px;">2026 GeoTIFF Viewer</div>
+</footer>
+
+<!-- JSライブラリ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-easyprint@2.1.9/dist/bundle.js"></script>
+<script src="https://unpkg.com/georaster"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+<script src="https://unpkg.com/tokml/tokml.js"></script>
+<script src="https://unpkg.com/togeojson@0.16.0/dist/togeojson.js"></script>
+<script src="https://unpkg.com/togeojson@0.16.0/dist/togeojson.js"></script>
+<script src="gtv.js"></script>
+
+</body>
+</html>
