@@ -106,3 +106,16 @@ html, body {
   transform: translateX(-50%);
   bottom: 10px !important;
 }
+
+/* 既存の CSS に追加 */
+.leaflet-control-north {
+  background: rgba(255,255,255,0.85);
+  border: 2px solid #333;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  line-height: 36px;
+  font-size: 20px;
+  font-weight: bold;
+}
