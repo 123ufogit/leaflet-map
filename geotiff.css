@@ -82,22 +82,42 @@ html, body {
   }
 }
 
-/* 方位記号（右上） */
-#north-arrow {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 40px;
-  height: 40px;
+/* 矢印デザインの方位記号 */
+.leaflet-control-north {
+  position: relative;
+  width: 50px;
+  height: 50px;
   background: rgba(255,255,255,0.85);
   border: 2px solid #333;
   border-radius: 50%;
-  text-align: center;
-  line-height: 36px;
-  font-size: 20px;
-  font-weight: bold;
   z-index: 1200;
   pointer-events: none;
+}
+
+/* 上向き矢印（北） */
+.leaflet-control-north::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 18px solid #d00; /* 赤い矢印 */
+}
+
+/* N の文字 */
+.leaflet-control-north::after {
+  content: "N";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
 }
 
 /* スケールバーを中央下に移動 */
