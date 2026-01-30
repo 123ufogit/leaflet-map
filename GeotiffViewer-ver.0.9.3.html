@@ -199,6 +199,19 @@ const map = L.map("map", {
   zoom: 13
 });
 
+  // 方位記号コントロール
+const NorthControl = L.Control.extend({
+  options: { position: "topright" },
+  onAdd: function (map) {
+    const div = L.DomUtil.create("div", "leaflet-control-north");
+    div.innerHTML = "N";
+    return div;
+  }
+});
+
+map.addControl(new NorthControl());
+
+  
 /* ===============================
    2. pane 設定（描画順）
 ================================ */
