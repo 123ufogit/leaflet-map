@@ -40,7 +40,8 @@
     flex: 1;
     height: 100%;
   }
-
+　　<div id="north-arrow">N</div>
+  
   /* ドロップゾーン（画面上部中央） */
   #dropzone {
     position: absolute;
@@ -152,8 +153,8 @@
 
     <!-- 保存ボタン（Leaflet.draw の下） -->
     <div id="export-buttons">
-      <button id="btnSaveGeoJSON">GeoJSON 保存</button>
-      <button id="btnSaveKML">KML 保存</button>
+      <button id="btnSaveGeoJSON">GeoJSON</button>
+      <button id="btnSaveKML">KML</button>
     </div>
   </div>
 
@@ -181,10 +182,10 @@
 /* ===== 起動メッセージ（GeoTIFF Viewer 0.9.3 用） ===== */
 window.onload = () => {
   alert(
-    "GeoTIFF Viewer 0.9.3 へようこそ！\n\n" +
-    "このビューアは、GeoTIFF（ラスタデータ）、GeoJSON、KML を地図上で直感的に重ね合わせて確認できる、シンプルで堅牢な地図ツールです。\n\n" +
-    "ファイルは、画面上部のドロップエリアにドラッグ＆ドロップするか、「ファイルを選択」ボタンから読み込めます。複数ファイルの同時読み込みにも対応しています。\n\n" +
-    "地図上での作図・編集、レイヤーの ON/OFF、中心座標の確認、MiniMap による位置把握、GeoJSON / KML の保存、印刷、さらにポリゴン面積・ライン延長の計測も行えます。\n\n" +
+    "GeoTIFF Viewer へようこそ！\n\n" +
+    "このビューアは、GeoTIFF（ラスタデータ）、GeoJSON をブラウザ上で直感的に重ね合わせて確認できる、シンプルな地図ツールです。\n\n" +
+    "ファイルは、画面上部のドロップエリアにドラッグ＆ドロップするか、「ファイルを選択」ボタンから読み込めます。\n\n" +
+    "地図上での作図・編集、保存、印刷、さらにポリゴン面積・ライン延長の計測も行えます。\n\n" +
     "本ツールはブラウザ上で動作し、データは保存されません。読み込んだファイルはすべて利用者の端末内で処理されます。\n\n" +
     "利用者は、利用規約に同意した上で本アプリを利用するものとします。"
   );
@@ -224,7 +225,7 @@ const gsiOrt = L.tileLayer(
    4. MiniMap
 ================================ */
 const miniLayer = L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+  "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
 );
 
 new L.Control.MiniMap(miniLayer, {
