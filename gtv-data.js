@@ -118,7 +118,7 @@ map.on(L.Draw.Event.CREATED, (e) => {
 let currentLayer = null;
 
 // 閾値（MB）
-const THRESHOLD_1 = 150 * 1024 * 1024; // 150MB → S/L 選択開始
+const THRESHOLD_1 = 50 * 1024 * 1024; // 150MB → S/L 選択開始
 
 async function loadGeoTIFF(arrayBuffer, fileSize, scale = 1) {
 
