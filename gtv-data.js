@@ -1,4 +1,20 @@
 /* ----------------------------------------
+   0. ローディング表示（追加）
+---------------------------------------- */
+function showLoading(text) {
+  document.getElementById("loadingText").textContent = text;
+  document.getElementById("loadingOverlay").style.display = "flex";
+}
+
+function updateDetail(text) {
+  document.getElementById("loadingDetail").textContent = text;
+}
+
+function hideLoading() {
+  document.getElementById("loadingOverlay").style.display = "none";
+}
+
+/* ----------------------------------------
    1. 計測ポップアップ
 ---------------------------------------- */
 function bindMeasurementPopup(layer) {
@@ -76,11 +92,14 @@ map.on(L.Draw.Event.CREATED, (e) => {
 });
 
 /* ----------------------------------------
-   3. GeoTIFF 読み込み
+   3. GeoTIFF 読み込み（進捗統合）
 ---------------------------------------- */
 let currentLayer = null;
 
 async function loadGeoTIFF(arrayBuffer) {
+  document.getElementById("loadingText").textContent = "解析中…";
+  updateDetail("");
+
   const georaster = await parseGeoraster(arrayBuffer, {
     buildPyramid: false
   });
@@ -99,20 +118,45 @@ async function loadGeoTIFF(arrayBuffer) {
 
   currentLayer.addTo(map);
   map.fitBounds(currentLayer.getBounds());
+
+  hideLoading();
 }
 
 /* ----------------------------------------
-   4. ファイル種別判定
+   4. ファイル種別判定（GeoTIFF に進捗追加）
 ---------------------------------------- */
 async function handleFile(file) {
   const name = file.name.toLowerCase();
 
+  /* ---- GeoTIFF ---- */
   if (name.endsWith(".tif") || name.endsWith(".tiff")) {
-    const arrayBuffer = await file.arrayBuffer();
-    await loadGeoTIFF(arrayBuffer);
+
+    showLoading("読み込み中…");
+
+    const reader = new FileReader();
+
+    reader.onloadstart = () => {
+      const totalMB = (file.size / 1024 / 1024).toFixed(1);
+      updateDetail(`0MB / ${totalMB}MB`);
+    };
+
+    reader.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const loadedMB = (e.loaded / 1024 / 1024).toFixed(1);
+        const totalMB = (e.total / 1024 / 1024).toFixed(1);
+        updateDetail(`${loadedMB}MB / ${totalMB}MB`);
+      }
+    };
+
+    reader.onload = async () => {
+      await loadGeoTIFF(reader.result);
+    };
+
+    reader.readAsArrayBuffer(file);
     return;
   }
 
+  /* ---- GeoJSON ---- */
   if (name.endsWith(".geojson") || name.endsWith(".json")) {
     const text = await file.text();
     const geojson = JSON.parse(text);
@@ -129,6 +173,7 @@ async function handleFile(file) {
     return;
   }
 
+  /* ---- KML ---- */
   if (name.endsWith(".kml")) {
     const text = await file.text();
     const parser = new DOMParser();
