@@ -175,6 +175,7 @@ map.on(L.Draw.Event.CREATED, (e) => {
    3. GeoTIFF 読み込み（縮小ロジック統合）
 ---------------------------------------- */
 function showTiffInfo(georaster, file) {
+  document.getElementById("tiffInfo").style.display = "block";
   const info = document.getElementById("tiffInfoBody");
 
   const width = georaster.width;
