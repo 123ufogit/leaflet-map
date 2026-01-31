@@ -187,10 +187,11 @@ function showTiffInfo(georaster, file) {
   const gsdCm = (gsdX * 100).toFixed(1);
 
   // 作成日（存在しない場合もある）
-  const date = georaster.metadata?.DateTime || "不明";
+const date = georaster.metadata?.DateTime;
+const dateHtml = date ? `<div>作成日：${date}</div>` : "";
 
   info.innerHTML = `
-    <div>作成日：${date}</div>
+    ${dateHtml}
     <div>ファイルタイプ：GeoTIFF</div>
     <div>ピクセルサイズ：${width} × ${height}px</div>
     <div>地上解像度：${gsdCm}cm/px</div>
