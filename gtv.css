@@ -42,7 +42,7 @@ html, body {
 ---------------------------------------- */
 #export-buttons {
   position: absolute;
-  top: 120px;     /* 作図ツールの下に配置 */
+  top: 120px;
   left: 10px;
   z-index: 1000;
 }
