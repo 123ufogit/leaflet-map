@@ -65,12 +65,11 @@ function bindMeasurementPopup(layer) {
 
       const sqm = Math.round(area);
 
-      html += `面積: ${ha.toFixed(2)} ha<br>` +
-              `　　 (${sqm.toLocaleString()} m²)<br>`;
+      html +=
+        `面積: ${ha.toFixed(2)} ha<br>` +
+        `　　 (${sqm.toLocaleString()} m²)<br>`;
     });
-  }
-
-  else if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
+  } else if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
     const latlngs = layer.getLatLngs();
     let lines = Array.isArray(latlngs[0]) ? latlngs : [latlngs];
 
@@ -85,9 +84,7 @@ function bindMeasurementPopup(layer) {
 
       html += `延長: ${len.toFixed(1)} m (${km.toFixed(3)} km)<br>`;
     });
-  }
-
-  else if (layer instanceof L.Marker) {
+  } else if (layer instanceof L.Marker) {
     const c = layer.getLatLng();
     html =
       `座標<br>` +
@@ -99,6 +96,69 @@ function bindMeasurementPopup(layer) {
 
   layer.bindPopup(html);
   layer.on("click", () => layer.openPopup());
+}
+
+/* ----------------------------------------
+   1-1. 属性付与用（GeoJSON フィーチャ）
+---------------------------------------- */
+function addMeasurementProperties(feature) {
+  const geom = feature.geometry;
+  if (!geom) return feature;
+
+  feature.properties = feature.properties || {};
+
+  // LineString / MultiLineString → 延長
+  if (geom.type === "LineString" || geom.type === "MultiLineString") {
+    let total = 0;
+    const lines = geom.type === "LineString" ? [geom.coordinates] : geom.coordinates;
+
+    lines.forEach((line) => {
+      for (let i = 0; i < line.length - 1; i++) {
+        const p1 = L.latLng(line[i][1], line[i][0]);
+        const p2 = L.latLng(line[i + 1][1], line[i + 1][0]);
+        total += map.distance(p1, p2);
+      }
+    });
+
+    feature.properties.length_m = Math.round(total);
+    feature.properties.length_km = Number(total / 1000).toFixed(3);
+  }
+
+  // Polygon / MultiPolygon → 面積
+  if (geom.type === "Polygon" || geom.type === "MultiPolygon") {
+    const polys = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
+
+    let totalArea = 0;
+
+    polys.forEach((poly) => {
+      const outer = poly[0].map((c) => L.latLng(c[1], c[0]));
+      let areaOuter = L.GeometryUtil.geodesicArea(outer);
+
+      let holes = 0;
+      for (let i = 1; i < poly.length; i++) {
+        const hole = poly[i].map((c) => L.latLng(c[1], c[0]));
+        holes += L.GeometryUtil.geodesicArea(hole);
+      }
+
+      totalArea += areaOuter - holes;
+    });
+
+    feature.properties.area_m2 = Math.round(totalArea);
+    feature.properties.area_ha = Number(totalArea / 10000).toFixed(2);
+  }
+
+  return feature;
+}
+
+function featureToExtendedData(props) {
+  if (!props) return "";
+  let xml = "<ExtendedData>";
+  for (const key in props) {
+    const value = props[key];
+    xml += `<Data name="${key}"><value>${value}</value></Data>`;
+  }
+  xml += "</ExtendedData>";
+  return xml;
 }
 
 /* ----------------------------------------
@@ -117,11 +177,10 @@ map.on(L.Draw.Event.CREATED, (e) => {
 
 let currentLayer = null;
 
-// 閾値（MB）
-const THRESHOLD_1 = 50 * 1024 * 1024; // 150MB → S/L 選択開始
+// 閾値（MB） 50MB → S/L 選択開始
+const THRESHOLD_1 = 50 * 1024 * 1024;
 
 async function loadGeoTIFF(arrayBuffer, fileSize, scale = 1) {
-
   document.getElementById("loadingText").textContent = "解析中…";
   updateDetail("");
 
@@ -157,7 +216,7 @@ async function loadGeoTIFF(arrayBuffer, fileSize, scale = 1) {
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * 4;
       if (isRGB) {
-        data[i]     = raster[0][y][x];
+        data[i] = raster[0][y][x];
         data[i + 1] = raster[1][y][x];
         data[i + 2] = raster[2][y][x];
         data[i + 3] = 255;
@@ -207,7 +266,6 @@ async function loadGeoTIFF(arrayBuffer, fileSize, scale = 1) {
    GeoTIFF レイヤ描画（共通）
 ---------------------------------------- */
 function renderGeoTIFF(georaster) {
-
   if (currentLayer) map.removeLayer(currentLayer);
 
   currentLayer = new GeoRasterLayer({
@@ -233,7 +291,6 @@ async function handleFile(file) {
   const name = file.name.toLowerCase();
 
   if (name.endsWith(".tif") || name.endsWith(".tiff")) {
-
     showLoading("読み込み中…");
 
     const reader = new FileReader();
@@ -252,7 +309,6 @@ async function handleFile(file) {
     };
 
     reader.onload = async () => {
-
       let scale = 1;
 
       if (file.size > THRESHOLD_1) {
@@ -347,23 +403,50 @@ dropzone.addEventListener("drop", async (e) => {
 });
 
 /* ----------------------------------------
-   7. GeoJSON / KML 保存
+   7. GeoJSON / KML 保存（属性付き & 名前を付けて保存）
 ---------------------------------------- */
-function downloadGeoJSON() {
-  const geojson = drawnItems.toGeoJSON();
-  const blob = new Blob([JSON.stringify(geojson)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "drawings.geojson";
-  a.click();
-
-  URL.revokeObjectURL(url);
+async function saveWithPicker(blob, suggestedName, mime, ext) {
+  if (window.showSaveFilePicker) {
+    const handle = await window.showSaveFilePicker({
+      suggestedName,
+      types: [
+        {
+          description: ext.toUpperCase(),
+          accept: { [mime]: [ext] }
+        }
+      ]
+    });
+    const writable = await handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+  } else {
+    // 非対応ブラウザ向けフォールバック（従来の自動ダウンロード）
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = suggestedName;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 }
 
-function downloadKML() {
+async function downloadGeoJSON() {
   const geojson = drawnItems.toGeoJSON();
+
+  geojson.features = geojson.features.map((f) => addMeasurementProperties(f));
+
+  const blob = new Blob([JSON.stringify(geojson, null, 2)], {
+    type: "application/json"
+  });
+
+  await saveWithPicker(blob, "drawings.geojson", "application/json", ".geojson");
+}
+
+async function downloadKML() {
+  const geojson = drawnItems.toGeoJSON();
+
+  geojson.features = geojson.features.map((f) => addMeasurementProperties(f));
+
   let kml = tokml(geojson);
 
   const styles = `
@@ -387,21 +470,49 @@ function downloadKML() {
   </Style>
   `;
 
+  // スタイル挿入
   kml = kml.replace("<Document>", `<Document>${styles}`);
-  kml = kml.replace(/<Placemark>/g, `<Placemark><styleUrl>#polyStyle</styleUrl>`);
-  kml = kml.replace(/<LineString>/g, `<styleUrl>#lineStyle</styleUrl><LineString>`);
+
+  // スタイル適用（既存仕様を維持）
+  kml = kml.replace(
+    /<Placemark>/g,
+    `<Placemark><styleUrl>#polyStyle</styleUrl>`
+  );
+  kml = kml.replace(
+    /<LineString>/g,
+    `<styleUrl>#lineStyle</styleUrl><LineString>`
+  );
+
+  // Polygon / Line 用 ExtendedData を styleUrl の前に挿入
+  const exts = geojson.features
+    .filter(
+      (f) =>
+        f.geometry &&
+        f.geometry.type !== "Point" &&
+        f.geometry.type !== "MultiPoint"
+    )
+    .map((f) => featureToExtendedData(f.properties));
+
+  let idx = 0;
+  kml = kml.replace(
+    /<styleUrl>#polyStyle<\/styleUrl>/g,
+    () => `${exts[idx++] || ""}<styleUrl>#polyStyle</styleUrl>`
+  );
+  kml = kml.replace(
+    /<styleUrl>#lineStyle<\/styleUrl>/g,
+    () => `${exts[idx++] || ""}<styleUrl>#lineStyle</styleUrl>`
+  );
 
   const blob = new Blob([kml], {
     type: "application/vnd.google-earth.kml+xml"
   });
-  const url = URL.createObjectURL(blob);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "drawings.kml";
-  a.click();
-
-  URL.revokeObjectURL(url);
+  await saveWithPicker(
+    blob,
+    "drawings.kml",
+    "application/vnd.google-earth.kml+xml",
+    ".kml"
+  );
 }
 
 /* ----------------------------------------
