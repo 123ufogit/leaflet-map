@@ -249,23 +249,27 @@ async function handleFile(file) {
     return;
   }
 
-  if (name.endsWith(".kml")) {
-    const text = await file.text();
-    const parser = new DOMParser();
-    const kmlDom = parser.parseFromString(text, "text/xml");
-    const geojson = toGeoJSON.kml(kmlDom);
+if (name.endsWith(".kml")) {
+  const text = await file.text();
+  const parser = new DOMParser();
+  const kmlDom = parser.parseFromString(text, "application/xml");
 
-    const layer = L.geoJSON(geojson, {
-      pane: "vectorPane",
-      onEachFeature: (feature, lyr) => {
-        drawnItems.addLayer(lyr);
-        bindMeasurementPopup(lyr);
-      }
-    });
+  // デバッグ（必要なら）
+  console.log("KML root:", kmlDom.documentElement.nodeName);
 
-    map.fitBounds(layer.getBounds());
-    return;
-  }
+  const geojson = toGeoJSON.kml(kmlDom);
+
+  const layer = L.geoJSON(geojson, {
+    pane: "vectorPane",
+    onEachFeature: (feature, lyr) => {
+      drawnItems.addLayer(lyr);
+      bindMeasurementPopup(lyr);
+    }
+  });
+
+  map.fitBounds(layer.getBounds());
+  return;
+}
 }
 
 /* ----------------------------------------
