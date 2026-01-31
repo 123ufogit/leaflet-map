@@ -126,32 +126,36 @@ map.addControl(drawControl);
 function bindMeasurementPopup(layer) {
   let html = "";
 
-  /* ---- Polygon / MultiPolygon ---- */
-  if (layer instanceof L.Polygon && !(layer instanceof L.Rectangle)) {
+/* ---- Polygon / MultiPolygon ---- */
+if (layer instanceof L.Polygon && !(layer instanceof L.Rectangle)) {
 
-    const latlngs = layer.getLatLngs();
-    let polygons = Array.isArray(latlngs[0][0]) ? latlngs : [latlngs];
+  const latlngs = layer.getLatLngs();
+  let polygons = Array.isArray(latlngs[0][0]) ? latlngs : [latlngs];
 
-    html = "面積<br>";
+  html = "面積<br>";
 
-    polygons.forEach((poly, idx) => {
-      const outer = poly[0];
-      let areaOuter = L.GeometryUtil.geodesicArea(outer);
+  polygons.forEach((poly) => {
+    const outer = poly[0];
+    let areaOuter = L.GeometryUtil.geodesicArea(outer);
 
-      let areaHoles = 0;
-      for (let i = 1; i < poly.length; i++) {
-        areaHoles += L.GeometryUtil.geodesicArea(poly[i]);
-      }
+    let areaHoles = 0;
+    for (let i = 1; i < poly.length; i++) {
+      areaHoles += L.GeometryUtil.geodesicArea(poly[i]);
+    }
 
-      const area = areaOuter - areaHoles;
+    const area = areaOuter - areaHoles;
 
-      const haRaw = area / 10000;
-      const ha = Math.floor(haRaw * 100) / 100;
+    // ha：小数第2位で切り捨て
+    const haRaw = area / 10000;
+    const ha = Math.floor(haRaw * 100) / 100;
 
-      html += `面積: ${ha.toFixed(2)} ha<br>` +
-              `　　 (${area.toLocaleString()} m²)<br>`;
-    });
-  }
+    // m²：四捨五入して整数
+    const sqm = Math.round(area);
+
+    html += `面積: ${ha.toFixed(2)} ha<br>` +
+            `　　 (${sqm.toLocaleString()} m²)<br>`;
+  });
+}
 
   /* ---- Polyline / MultiLineString ---- */
   else if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
