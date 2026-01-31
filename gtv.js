@@ -149,7 +149,7 @@ function bindMeasurementPopup(layer) {
       const ha = Math.floor(haRaw * 100) / 100;
 
        html += `面積: ${ha.toFixed(2)} ha<br>` +
-        `　　 ${area.toLocaleString()} m²<br>`;
+        `　　 (${area.toLocaleString()} m²)<br>`;
     });
   }
 
@@ -168,7 +168,7 @@ function bindMeasurementPopup(layer) {
       }
       const km = len / 1000;
 
-      html += `Line ${idx + 1}: ${len.toFixed(1)} m (${km.toFixed(3)} km)<br>`;
+      html += `延長: ${len.toFixed(1)} m (${km.toFixed(3)} km)<br>`;
     });
   }
 
