@@ -202,7 +202,7 @@ let currentLayer = null;
 // 閾値（MB） 50MB → S/L 選択開始
 const THRESHOLD_1 = 50 * 1024 * 1024;
 
-async function loadGeoTIFF(arrayBuffer, fileSize, scale = 1) {
+async function loadGeoTIFF(arrayBuffer, file, scale = 1) {
   document.getElementById("loadingText").textContent = "解析中…";
   updateDetail("");
 
@@ -343,7 +343,7 @@ async function handleFile(file) {
         scale = await askScaleKey();
       }
 
-      await loadGeoTIFF(reader.result, file.size, scale);
+      await loadGeoTIFF(reader.result, file, scale);
     };
 
     reader.readAsArrayBuffer(file);
