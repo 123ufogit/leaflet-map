@@ -6,7 +6,7 @@ window.onload = () => {
     "GeoTIFF Viewer へようこそ！\n\n" +
     "GeoTIFF / GeoJSON / KML をブラウザ上で重ね合わせて確認できます。\n" +
     "ファイルは画面上部のドロップエリアにドラッグ＆ドロップしてください。\n\n" +
-    "作図・編集・保存・印刷、面積・延長の計測も可能です。\n"
+    "作図・編集・保存、面積・延長の計測も可能です。\n"
   );
 };
 
@@ -17,10 +17,6 @@ const map = L.map("map", {
   center: [36.56, 136.65],
   zoom: 13
 });
-
-// Leaflet コントロールコンテナを map._container 内に移動（印刷/キャプチャ対応の安定化）
-const controlContainer = map._controlContainer;
-map._container.appendChild(controlContainer);
 
 /* ----------------------------------------
    方位記号コントロール
@@ -56,7 +52,7 @@ const gsiOrt = L.tileLayer(
 );
 
 /* ----------------------------------------
-   4. MiniMap
+   4. MiniMap（DOM 移動なし）
 ---------------------------------------- */
 const miniLayer = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
@@ -89,11 +85,8 @@ const centerMarker = L.marker(map.getCenter(), {
 function updateCenterInfo() {
   const c = map.getCenter();
   centerMarker.setLatLng(c);
-  const coordBox = document.getElementById("coordBox");
-  if (coordBox) {
-    coordBox.textContent =
-      `Lat: ${c.lat.toFixed(6)} , Lng: ${c.lng.toFixed(6)}`;
-  }
+  document.getElementById("coordBox").textContent =
+    `Lat: ${c.lat.toFixed(6)} , Lng: ${c.lng.toFixed(6)}`;
 }
 
 map.on("move", updateCenterInfo);
@@ -128,9 +121,7 @@ const drawControl = new L.Control.Draw({
 map.addControl(drawControl);
 
 /* ----------------------------------------
-   8. 面積・延長計測（完全版）
-   - Polygon / MultiPolygon: 各ポリゴンの面積のみ（合計なし）
-   - Polyline / MultiLineString: 各ラインの延長のみ（合計なし）
+   8. 面積・延長計測（合計なし）
 ---------------------------------------- */
 function bindMeasurementPopup(layer) {
   let html = "";
@@ -139,15 +130,7 @@ function bindMeasurementPopup(layer) {
   if (layer instanceof L.Polygon && !(layer instanceof L.Rectangle)) {
 
     const latlngs = layer.getLatLngs();
-    let polygons = [];
-
-    // MultiPolygon
-    if (Array.isArray(latlngs[0][0])) {
-      polygons = latlngs;
-    } else {
-      // Polygon
-      polygons = [latlngs];
-    }
+    let polygons = Array.isArray(latlngs[0][0]) ? latlngs : [latlngs];
 
     html = "面積<br>";
 
@@ -162,7 +145,6 @@ function bindMeasurementPopup(layer) {
 
       const area = areaOuter - areaHoles;
 
-      // ha（小数第2位で切り捨て）
       const haRaw = area / 10000;
       const ha = Math.floor(haRaw * 100) / 100;
 
@@ -175,13 +157,7 @@ function bindMeasurementPopup(layer) {
   else if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
 
     const latlngs = layer.getLatLngs();
-    let lines = [];
-
-    if (Array.isArray(latlngs[0])) {
-      lines = latlngs; // MultiLineString
-    } else {
-      lines = [latlngs]; // Polyline
-    }
+    let lines = Array.isArray(latlngs[0]) ? latlngs : [latlngs];
 
     html = "延長<br>";
 
@@ -220,17 +196,7 @@ map.on(L.Draw.Event.CREATED, (e) => {
 });
 
 /* ----------------------------------------
-   9. easyPrint（必要なら残す）
----------------------------------------- */
-L.easyPrint({
-  title: "印刷 / 保存",
-  position: "topleft",
-  sizeModes: ["Current", "A4Portrait", "A4Landscape"],
-  elementsToHide: ""
-}).addTo(map);
-
-/* ----------------------------------------
-   10. GeoTIFF 読み込み
+   9. GeoTIFF 読み込み
 ---------------------------------------- */
 let currentLayer = null;
 
@@ -256,7 +222,7 @@ async function loadGeoTIFF(arrayBuffer) {
 }
 
 /* ----------------------------------------
-   11. ファイル種別判定
+   10. ファイル種別判定
 ---------------------------------------- */
 async function handleFile(file) {
   const name = file.name.toLowerCase();
@@ -303,52 +269,47 @@ async function handleFile(file) {
 }
 
 /* ----------------------------------------
-   12. ファイル選択
+   11. ファイル選択
 ---------------------------------------- */
-const fileInput = document.getElementById("fileInput");
-if (fileInput) {
-  fileInput.addEventListener("change", async (event) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+document.getElementById("fileInput").addEventListener("change", async (event) => {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
 
-    for (const file of files) {
-      await handleFile(file);
-    }
+  for (const file of files) {
+    await handleFile(file);
+  }
 
-    event.target.value = "";
-  });
-}
+  event.target.value = "";
+});
 
 /* ----------------------------------------
-   13. ドラッグ＆ドロップ
+   12. ドラッグ＆ドロップ
 ---------------------------------------- */
 const dropzone = document.getElementById("dropzone");
 
-if (dropzone) {
-  dropzone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropzone.classList.add("dragover");
-  });
+dropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropzone.classList.add("dragover");
+});
 
-  dropzone.addEventListener("dragleave", () => {
-    dropzone.classList.remove("dragover");
-  });
+dropzone.addEventListener("dragleave", () => {
+  dropzone.classList.remove("dragover");
+});
 
-  dropzone.addEventListener("drop", async (e) => {
-    e.preventDefault();
-    dropzone.classList.remove("dragover");
+dropzone.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  dropzone.classList.remove("dragover");
 
-    const files = e.dataTransfer.files;
-    if (!files || files.length === 0) return;
+  const files = e.dataTransfer.files;
+  if (!files || files.length === 0) return;
 
-    for (const file of files) {
-      await handleFile(file);
-    }
-  });
-}
+  for (const file of files) {
+    await handleFile(file);
+  }
+});
 
 /* ----------------------------------------
-   14. スケールバー
+   13. スケールバー
 ---------------------------------------- */
 L.control.scale({
   position: "bottomleft",
@@ -356,7 +317,7 @@ L.control.scale({
 }).addTo(map);
 
 /* ----------------------------------------
-   15. GeoJSON / KML 保存
+   14. GeoJSON / KML 保存
 ---------------------------------------- */
 function downloadGeoJSON() {
   const geojson = drawnItems.toGeoJSON();
@@ -386,43 +347,5 @@ function downloadKML() {
   URL.revokeObjectURL(url);
 }
 
-const btnSaveGeoJSON = document.getElementById("btnSaveGeoJSON");
-if (btnSaveGeoJSON) {
-  btnSaveGeoJSON.addEventListener("click", downloadGeoJSON);
-}
-
-const btnSaveKML = document.getElementById("btnSaveKML");
-if (btnSaveKML) {
-  btnSaveKML.addEventListener("click", downloadKML);
-}
-
-/* ----------------------------------------
-   16. 画像 / PDF エクスポート（html2canvas + jsPDF）
----------------------------------------- */
-const btnExportImage = document.getElementById("btnExportImage");
-if (btnExportImage) {
-  btnExportImage.addEventListener("click", () => {
-    html2canvas(document.getElementById("map")).then(canvas => {
-      const link = document.createElement("a");
-      link.href = canvas.toDataURL("image/png");
-      link.download = "map_export.png";
-      link.click();
-    });
-  });
-}
-
-const btnExportPDF = document.getElementById("btnExportPDF");
-if (btnExportPDF) {
-  btnExportPDF.addEventListener("click", () => {
-    html2canvas(document.getElementById("map")).then(canvas => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("landscape", "mm", "a4");
-
-      const width = pdf.internal.pageSize.getWidth();
-      const height = pdf.internal.pageSize.getHeight();
-
-      pdf.addImage(imgData, "PNG", 0, 0, width, height);
-      pdf.save("map_export.pdf");
-    });
-  });
-}
+document.getElementById("btnSaveGeoJSON").addEventListener("click", downloadGeoJSON);
+document.getElementById("btnSaveKML").addEventListener("click", downloadKML);
