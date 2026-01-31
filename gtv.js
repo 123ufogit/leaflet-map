@@ -148,8 +148,8 @@ function bindMeasurementPopup(layer) {
       const haRaw = area / 10000;
       const ha = Math.floor(haRaw * 100) / 100;
 
-      html += `Polygon ${idx + 1}: ${ha.toFixed(2)} ha<br>` +
-              `　　　　　 ${area.toFixed(0)} m²<br>`;
+       html += `面積: ${ha.toFixed(2)} ha<br>` +
+        `　　 ${area.toLocaleString()} m²<br>`;
     });
   }
 
