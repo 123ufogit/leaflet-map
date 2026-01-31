@@ -115,3 +115,15 @@ html, body {
   transform: translateX(-50%);
   bottom: 10px !important;
 }
+
+/* ----------------------------------------
+   オルソ画像情報（中心座標と同じ枠）
+---------------------------------------- */
+#tiffInfo {
+  margin-top: 20px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 14px;
+}
