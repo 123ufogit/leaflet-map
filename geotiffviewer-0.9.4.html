@@ -114,13 +114,6 @@
     box-sizing: border-box;
     backdrop-filter: blur(4px);
   }
-
-  @media print {
-    #dropzone,
-    #export-buttons {
-      display: none;
-    }
-  }
 </style>
 
 </head>
@@ -136,8 +129,13 @@
 
     <h4>現在の中心座標</h4>
     <div id="coordBox">Lat: ---, Lng: ---</div>
+    <!-- オルソ画像の情報 -->
+    <div id="tiffInfo" class="sidebar-section">
+    <h3>オルソ画像の情報</h3>
+    <div id="tiffInfoBody"></div>
+    </div>
   </div>
-
+  
   <!-- 地図 -->
   <div id="map">
     <!-- ドロップエリア（上部中央） -->
@@ -177,5 +175,20 @@
 <script src="gtv-core.js"></script>
 <script src="gtv-data.js"></script>
   
+  <div id="loadingOverlay" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255,255,255,0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-size: 18px;
+  z-index: 2000;
+">
+  <div id="loadingText">読み込み中…</div>
+  <div id="loadingDetail" style="margin-top:10px;"></div>
+</div>
 </body>
 </html>

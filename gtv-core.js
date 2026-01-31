@@ -64,7 +64,7 @@ new L.Control.MiniMap(miniLayer, {
   minimized: false,
   width: 150,
   height: 150,
-  zoomLevelOffset: -5
+  zoomLevelOffset: -3
 }).addTo(map);
 
 /* ----------------------------------------
@@ -110,7 +110,7 @@ async function updateCenterInfo() {
   const address = await fetchAddress(c.lat, c.lng);
 
   document.getElementById("coordBox").textContent =
-    `Lat: ${c.lat.toFixed(6)} , Lng: ${c.lng.toFixed(6)}（${address}）`;
+    `Lat: ${c.lat.toFixed(6)} , Lng: ${c.lng.toFixed(6)}`;
 }
 
 map.on("move", () => updateCenterInfo());
@@ -180,3 +180,20 @@ const SaveControl = L.Control.extend({
 });
 
 map.addControl(new SaveControl());
+
+/* ----------------------------------------
+   凡例（常時表示）
+---------------------------------------- */
+const legend = L.control({ position: "bottomright" });
+
+legend.onAdd = function () {
+  const div = L.DomUtil.create("div", "legend");
+  div.innerHTML = `
+    <div class="legend-title">凡例</div>
+    <div><span class="legend-line"></span> ライン</div>
+    <div><span class="legend-polygon"></span> ポリゴン</div>
+  `;
+  return div;
+};
+
+legend.addTo(map);
