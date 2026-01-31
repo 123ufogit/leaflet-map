@@ -157,6 +157,7 @@ html, body {
 ---------------------------------------- */
 @media print {
   #dropzone,
+  .footer,
   .leaflet-draw,
   .save-control,
   .leaflet-control-layers {
