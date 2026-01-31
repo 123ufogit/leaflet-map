@@ -120,3 +120,45 @@ html, body {
   display: none;
 
 }
+
+/* 凡例（普段は非表示） */
+.legend {
+  display: none;
+}
+
+/* 印刷時のみ凡例を表示 */
+@media print {
+  .legend {
+    display: block !important;
+    background: white;
+    padding: 8px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+}
+
+/* 凡例の記号 */
+.legend-line {
+  display: inline-block;
+  width: 20px;
+  height: 3px;
+  background: #3388ff;
+  margin-right: 6px;
+}
+.legend-polygon {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  background: rgba(51,136,255,0.3);
+  border: 1px solid #3388ff;
+  margin-right: 6px;
+}
+.legend-point {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: red;
+  border-radius: 50%;
+  margin-right: 6px;
+}
