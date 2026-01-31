@@ -126,13 +126,19 @@ function bindMeasurementPopup(layer) {
   let html = "";
 
   // ポリゴン（面積）
-  if (layer instanceof L.Polygon && !(layer instanceof L.Rectangle)) {
-    const latlngs = layer.getLatLngs()[0];
-    const area = L.GeometryUtil.geodesicArea(latlngs); // m²
-    const areaHa = area / 10000;
-    html =
-      `面積: ${area.toFixed(0)} m²<br>` +
-      `　　 ${areaHa.toFixed(4)} ha`;
+if (layer instanceof L.Polygon && !(layer instanceof L.Rectangle)) {
+
+  let latlngs = layer.getLatLngs();
+  if (Array.isArray(latlngs[0][0])) {
+    latlngs = latlngs[0][0];  // MultiPolygon → Polygon の外周を取り出す
+  } else {
+    latlngs = latlngs[0];     // Polygon
+  }
+  const area = L.GeometryUtil.geodesicArea(latlngs);
+  const areaHa = area / 10000;
+  html =
+    `面積: ${area.toFixed(0)} m²<br>` +
+    `　　 ${areaHa.toFixed(4)} ha`;
 
   // ライン（延長）
   } else if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
