@@ -64,7 +64,7 @@ new L.Control.MiniMap(miniLayer, {
   minimized: false,
   width: 150,
   height: 150,
-  zoomLevelOffset: -5
+  zoomLevelOffset: -2
 }).addTo(map);
 
 /* ----------------------------------------
