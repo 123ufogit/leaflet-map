@@ -148,8 +148,8 @@ function bindMeasurementPopup(layer) {
       const haRaw = area / 10000;
       const ha = Math.floor(haRaw * 100) / 100;
 
-       html += `面積: ${ha.toFixed(2)} ha<br>` +
-        `　　 (${area.toLocaleString()} m²)<br>`;
+      html += `面積: ${ha.toFixed(2)} ha<br>` +
+              `　　 (${area.toLocaleString()} m²)<br>`;
     });
   }
 
@@ -347,5 +347,37 @@ function downloadKML() {
   URL.revokeObjectURL(url);
 }
 
-document.getElementById("btnSaveGeoJSON").addEventListener("click", downloadGeoJSON);
-document.getElementById("btnSaveKML").addEventListener("click", downloadKML);
+/* ----------------------------------------
+   15. 保存ボタン（Leaflet コントロール）
+---------------------------------------- */
+const SaveControl = L.Control.extend({
+  options: { position: "topleft" },
+
+  onAdd: function () {
+    const div = L.DomUtil.create("div", "leaflet-bar save-control");
+
+    div.innerHTML = `
+      <a class="save-toggle" title="保存メニュー">💾</a>
+      <div class="save-menu hidden">
+        <a id="btnSaveGeoJSON">GeoJSON</a>
+        <a id="btnSaveKML">KML</a>
+      </div>
+    `;
+
+    L.DomEvent.disableClickPropagation(div);
+
+    div.querySelector(".save-toggle").onclick = () => {
+      div.querySelector(".save-menu").classList.toggle("hidden");
+    };
+
+    return div;
+  }
+});
+
+map.addControl(new SaveControl());
+
+/* 保存イベント */
+document.addEventListener("click", (e) => {
+  if (e.target.id === "btnSaveGeoJSON") downloadGeoJSON();
+  if (e.target.id === "btnSaveKML") downloadKML();
+});
