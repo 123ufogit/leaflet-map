@@ -151,7 +151,6 @@ function bindMeasurementPopup(layer) {
 
       const area = areaOuter - areaHoles;
       const ha = area / 10000;
-
       html += `Polygon ${idx + 1}: ${area.toFixed(0)} m² (${ha.toFixed(4)} ha)<br>`;
     });
   }
