@@ -71,12 +71,6 @@ new L.Control.MiniMap(miniLayer, {
   zoomLevelOffset: -5
 }).addTo(map);
 
-// MiniMap の DOM も map._container 内に移動（キャプチャ安定化）
-const miniMapContainer = document.querySelector(".leaflet-control-minimap");
-if (miniMapContainer) {
-  map._container.appendChild(miniMapContainer);
-}
-
 /* ----------------------------------------
    5. 十字線マーカー & 座標表示
 ---------------------------------------- */
