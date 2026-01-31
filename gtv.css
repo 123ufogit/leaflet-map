@@ -38,27 +38,39 @@ html, body {
 }
 
 /* ----------------------------------------
-   GeoJSON / KML 保存ボタン（左側）
+   （旧）GeoJSON / KML 保存ボタン
+   → Leaflet コントロール化したため削除
 ---------------------------------------- */
-#export-buttons {
-  position: absolute;
-  top: 120px;
-  left: 10px;
-  z-index: 1000;
-}
+/* #export-buttons { ... } などは不要 */
 
-#export-buttons button {
+/* ----------------------------------------
+   折りたたみ式 保存コントロール（Leaflet）
+---------------------------------------- */
+.save-control .save-toggle {
   display: block;
-  margin-bottom: 6px;
-  padding: 6px 10px;
-  width: 140px;
-  font-size: 14px;
+  padding: 6px 8px;
+  text-align: center;
   cursor: pointer;
-  border: 1px solid #888;
   background: white;
-  border-radius: 4px;
+  font-size: 16px;
 }
 
+.save-control .save-menu a {
+  display: block;
+  padding: 6px 8px;
+  background: white;
+  border-top: 1px solid #ccc;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.save-control .save-menu a:hover {
+  background: #f0f0f0;
+}
+
+.save-control .hidden {
+  display: none;
+}
 
 /* ----------------------------------------
    方位記号（矢印デザイン）
@@ -85,7 +97,7 @@ html, body {
   height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-bottom: 18px solid #d00; /* 赤い矢印 */
+  border-bottom: 18px solid #d00;
 }
 
 /* N の文字 */
