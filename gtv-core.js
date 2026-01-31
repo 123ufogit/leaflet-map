@@ -180,3 +180,20 @@ const SaveControl = L.Control.extend({
 });
 
 map.addControl(new SaveControl());
+
+/* ----------------------------------------
+   凡例（印刷時のみ表示）
+---------------------------------------- */
+const legend = L.control({ position: "bottomright" });
+
+legend.onAdd = function () {
+  const div = L.DomUtil.create("div", "legend");
+  div.innerHTML = `
+    <div><span class="legend-line"></span> 作図ライン</div>
+    <div><span class="legend-polygon"></span> 作図ポリゴン</div>
+    <div><span class="legend-point"></span> 作図ポイント</div>
+  `;
+  return div;
+};
+
+legend.addTo(map);
