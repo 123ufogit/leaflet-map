@@ -110,7 +110,7 @@ async function updateCenterInfo() {
   const address = await fetchAddress(c.lat, c.lng);
 
   document.getElementById("coordBox").textContent =
-    `Lat: ${c.lat.toFixed(6)} , Lng: ${c.lng.toFixed(6)}（${address}）`;
+    `Lat: ${c.lat.toFixed(6)} , Lng: ${c.lng.toFixed(6)}`;
 }
 
 map.on("move", () => updateCenterInfo());
