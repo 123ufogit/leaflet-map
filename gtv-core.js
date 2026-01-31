@@ -90,10 +90,13 @@ async function fetchAddress(lat, lng) {
     const res = await fetch(url);
     const json = await res.json();
 
-    const muni = json.results.muni || "";
-    const lv01 = json.results.lv01 || "";
+    const muniCd = json.results.muniCd || "";
+    const lv01Nm = json.results.lv01Nm || "";
 
-    return `${muni}${lv01}付近`;
+    // 市区町村名を muniCd から取得するための辞書
+    const muniName = MUNI[muniCd] || "";
+
+    return `${muniName}${lv01Nm}付近`;
   } catch (e) {
     return "住所取得エラー";
   }
