@@ -174,6 +174,28 @@ map.on(L.Draw.Event.CREATED, (e) => {
 /* ----------------------------------------
    3. GeoTIFF 読み込み（縮小ロジック統合）
 ---------------------------------------- */
+function showTiffInfo(georaster, file) {
+  const info = document.getElementById("tiffInfoBody");
+
+  const width = georaster.width;
+  const height = georaster.height;
+
+  const gsdX = georaster.pixelWidth;   // m/pixel
+  const gsdY = georaster.pixelHeight;
+
+  // cm/pixel に変換（例：0.03m → 3cm）
+  const gsdCm = (gsdX * 100).toFixed(1);
+
+  // 作成日（存在しない場合もある）
+  const date = georaster.metadata?.DateTime || "不明";
+
+  info.innerHTML = `
+    <div>作成日：${date}</div>
+    <div>ファイルタイプ：GeoTIFF</div>
+    <div>ピクセルサイズ：${width} × ${height}px</div>
+    <div>地上解像度：${gsdCm}cm/px</div>
+  `;
+}
 
 let currentLayer = null;
 
@@ -188,6 +210,8 @@ async function loadGeoTIFF(arrayBuffer, fileSize, scale = 1) {
     buildPyramid: false
   });
 
+showTiffInfo(georaster, file);
+   
   // 縮小不要ならそのまま
   if (scale === 1) {
     return renderGeoTIFF(georaster);
