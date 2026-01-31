@@ -338,9 +338,40 @@ function downloadGeoJSON() {
 
 function downloadKML() {
   const geojson = drawnItems.toGeoJSON();
-  const kml = tokml(geojson);
+  let kml = tokml(geojson);
 
-  const blob = new Blob([kml], { type: "application/vnd.google-earth.kml+xml" });
+  // Polygon と Polyline のスタイル定義
+  const styles = `
+  <Style id="polyStyle">
+    <LineStyle>
+      <color>ff0000ff</color> <!-- 赤（不透明） -->
+      <width>2</width>
+    </LineStyle>
+    <PolyStyle>
+      <color>7f0000ff</color> <!-- 赤（50%透過） -->
+      <fill>1</fill>
+      <outline>1</outline>
+    </PolyStyle>
+  </Style>
+
+  <Style id="lineStyle">
+    <LineStyle>
+      <color>ff0000ff</color> <!-- 赤（不透明） -->
+      <width>3</width>
+    </LineStyle>
+  </Style>
+  `;
+
+  // Document 内に Style を挿入
+  kml = kml.replace("<Document>", `<Document>${styles}`);
+
+  // Placemark に styleUrl を追加（Polygon と LineString 両対応）
+  kml = kml.replace(/<Placemark>/g, `<Placemark><styleUrl>#polyStyle</styleUrl>`);
+  kml = kml.replace(/<LineString>/g, `<styleUrl>#lineStyle</styleUrl><LineString>`);
+
+  const blob = new Blob([kml], {
+    type: "application/vnd.google-earth.kml+xml"
+  });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
@@ -350,7 +381,6 @@ function downloadKML() {
 
   URL.revokeObjectURL(url);
 }
-
 /* ----------------------------------------
    15. 保存ボタン（Leaflet コントロール）
 ---------------------------------------- */
