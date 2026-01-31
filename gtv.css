@@ -37,7 +37,6 @@ html, body {
   background: rgba(200, 255, 200, 0.9);
 }
 
-
 /* ----------------------------------------
    折りたたみ式 保存コントロール（Leaflet）
 ---------------------------------------- */
@@ -81,7 +80,6 @@ html, body {
   pointer-events: none;
 }
 
-/* 上向き矢印（北） */
 .leaflet-control-north::before {
   content: "";
   position: absolute;
@@ -95,7 +93,6 @@ html, body {
   border-bottom: 18px solid #d00;
 }
 
-/* N の文字 */
 .leaflet-control-north::after {
   content: "N";
   position: absolute;
@@ -118,33 +115,51 @@ html, body {
   border-radius: 4px;
   font-size: 14px;
   display: none;
-
 }
 
-/* 凡例（普段は非表示） */
+/* ----------------------------------------
+   凡例（常時表示）
+---------------------------------------- */
 .legend {
-  display: none;
+  background: white;
+  padding: 8px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 2000;
+}
+
+.legend-title {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+/* 記号 */
+.legend-line {
+  display: inline-block;
+  width: 20px;
+  height: 3px;
+  background: #3388ff;
+  margin-right: 6px;
+}
+
+.legend-polygon {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  background: rgba(51,136,255,0.3);
+  border: 1px solid #3388ff;
+  margin-right: 6px;
 }
 
 /* ----------------------------------------
    印刷時の UI 非表示ルール
 ---------------------------------------- */
 @media print {
-  /* 印刷時に不要な UI を非表示 */
   #dropzone,
   .leaflet-draw,
   .save-control,
   .leaflet-control-layers {
     display: none !important;
-  }
-
-  /* 印刷時のみ凡例を表示 */
-  .legend {
-    display: block !important;
-    background: white;
-    padding: 8px;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    font-size: 12px;
   }
 }
