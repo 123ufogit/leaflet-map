@@ -117,4 +117,6 @@ html, body {
   border: 1px solid #aaa;
   border-radius: 4px;
   font-size: 14px;
+  display: none;
+
 }
