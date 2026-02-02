@@ -234,25 +234,34 @@ showTiffInfo(georaster, file);
   const ctx = canvas.getContext("2d");
 
   const imageData = ctx.createImageData(width, height);
-  const data = imageData.data;
-  const raster = georaster.values;
-  const isRGB = raster.length >= 3;
+const data = imageData.data;
+const raster = georaster.values;
+const isRGB = raster.length >= 3;
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const i = (y * width + x) * 4;
-      if (isRGB) {
-        data[i] = raster[0][y][x];
-        data[i + 1] = raster[1][y][x];
-        data[i + 2] = raster[2][y][x];
-        data[i + 3] = 255;
-      } else {
-        const v = raster[0][y][x];
-        data[i] = data[i + 1] = data[i + 2] = v;
-        data[i + 3] = 255;
-      }
+for (let y = 0; y < height; y++) {
+
+  // 進捗を UI に反映（100 行ごと）
+  if (y % 100 === 0) {
+    const percent = Math.floor((y / height) * 100);
+    updateDetail(`縮小処理中… ${percent}%`);
+    await new Promise(r => setTimeout(r));  // UI に制御を返す
+  }
+
+  for (let x = 0; x < width; x++) {
+    const i = (y * width + x) * 4;
+    if (isRGB) {
+      data[i] = raster[0][y][x];
+      data[i + 1] = raster[1][y][x];
+      data[i + 2] = raster[2][y][x];
+      data[i + 3] = 255;
+    } else {
+      const v = raster[0][y][x];
+      data[i] = data[i + 1] = data[i + 2] = v;
+      data[i + 3] = 255;
     }
   }
+}
+
 
   ctx.putImageData(imageData, 0, 0);
 
