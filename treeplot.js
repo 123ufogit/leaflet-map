@@ -1,9 +1,10 @@
 /*
-  treeplot.js version 0.9.2
-  - レイヤ独立構造を維持したまま最小限の整理
-  - CSV パースのみ共通化（安全）
-  - layerCSV を先頭で宣言（バグ修正）
-  - TLS_area.geojson の二重 fetch を解消
+  treeplot.js version 0.9.3
+  - レイヤ独立構造を維持
+  - CSV パース共通化
+  - layerCSV の宣言順修正
+  - TLS_area.geojson の二重 fetch 解消
+  - TREES の circleMarker に最小半径 4px を適用（クリック改善）
 */
 
 /* ===== 共通：CSV パーサ ===== */
@@ -118,7 +119,9 @@ function loadCSV(path = "data/trees.csv") {
 
         const girth = parseFloat(row["幹周"]);
         const diameter = girth / Math.PI;
-        const markerRadius = diameter * 0.2;
+
+        // ★ 最小半径 4px を保証（クリック改善）
+        const markerRadius = Math.max(diameter * 0.2, 4);
 
         let color = "#cccccc";
         if (row["樹種"] === "スギ") color = "#99cc00";
