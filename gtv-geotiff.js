@@ -24,12 +24,12 @@ function askScaleKey() {
 
       if (key === "l") {
         window.removeEventListener("keydown", handler);
-        resolve(0.5);   // Large = 1/2
+        resolve(0.5);
       }
 
       if (key === "s") {
         window.removeEventListener("keydown", handler);
-        resolve(0.25);  // Small = 1/4
+        resolve(0.25);
       }
     };
 
@@ -38,7 +38,7 @@ function askScaleKey() {
 }
 
 /* ----------------------------------------
-   3. GeoTIFF 読み込み（縮小ロジック統合）
+   1. GeoTIFF 情報表示
 ---------------------------------------- */
 function showTiffInfo(georaster, file) {
   document.getElementById("tiffInfo").style.display = "block";
@@ -47,15 +47,11 @@ function showTiffInfo(georaster, file) {
   const width = georaster.width;
   const height = georaster.height;
 
-  const gsdX = georaster.pixelWidth;   // m/pixel
-  const gsdY = georaster.pixelHeight;
-
-  // cm/pixel に変換（例：0.03m → 3cm）
+  const gsdX = georaster.pixelWidth;
   const gsdCm = (gsdX * 100).toFixed(1);
 
-  // 作成日（存在しない場合もある）
-const date = georaster.metadata?.DateTime;
-const dateHtml = date ? `<div>作成日：${date}</div>` : "";
+  const date = georaster.metadata?.DateTime;
+  const dateHtml = date ? `<div>作成日：${date}</div>` : "";
 
   info.innerHTML = `
     ${dateHtml}
@@ -66,10 +62,11 @@ const dateHtml = date ? `<div>作成日：${date}</div>` : "";
 }
 
 let currentLayer = null;
-
-// 閾値（MB） 50MB → S/L 選択開始
 const THRESHOLD_1 = 150 * 1024 * 1024;
 
+/* ----------------------------------------
+   2. GeoTIFF 読み込み（縮小ロジック統合）
+---------------------------------------- */
 async function loadGeoTIFF(arrayBuffer, file, scale = 1) {
   document.getElementById("loadingText").textContent = "解析中…";
   updateDetail("");
@@ -78,14 +75,12 @@ async function loadGeoTIFF(arrayBuffer, file, scale = 1) {
     buildPyramid: false
   });
 
-showTiffInfo(georaster, file);
-   
-  // 縮小不要ならそのまま
+  showTiffInfo(georaster, file);
+
   if (scale === 1) {
     return renderGeoTIFF(georaster);
   }
 
-  // 縮小処理
   document.getElementById("loadingText").textContent = "縮小版を生成中…";
 
   const width = georaster.width;
@@ -100,34 +95,32 @@ showTiffInfo(georaster, file);
   const ctx = canvas.getContext("2d");
 
   const imageData = ctx.createImageData(width, height);
-const data = imageData.data;
-const raster = georaster.values;
-const isRGB = raster.length >= 3;
+  const data = imageData.data;
+  const raster = georaster.values;
+  const isRGB = raster.length >= 3;
 
-for (let y = 0; y < height; y++) {
+  for (let y = 0; y < height; y++) {
+    if (y % 100 === 0) {
+      const percent = Math.floor((y / height) * 100);
+      updateDetail(`縮小処理中… ${percent}%`);
+      await new Promise(r => setTimeout(r));
+    }
 
-  // 進捗を UI に反映（100 行ごと）
-  if (y % 100 === 0) {
-    const percent = Math.floor((y / height) * 100);
-    updateDetail(`縮小処理中… ${percent}%`);
-    await new Promise(r => setTimeout(r));  // UI に制御を返す
-  }
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
 
-  for (let x = 0; x < width; x++) {
-    const i = (y * width + x) * 4;
-    if (isRGB) {
-      data[i] = raster[0][y][x];
-      data[i + 1] = raster[1][y][x];
-      data[i + 2] = raster[2][y][x];
-      data[i + 3] = 255;
-    } else {
-      const v = raster[0][y][x];
-      data[i] = data[i + 1] = data[i + 2] = v;
-      data[i + 3] = 255;
+      if (isRGB) {
+        data[i] = raster[0][y][x];
+        data[i + 1] = raster[1][y][x];
+        data[i + 2] = raster[2][y][x];
+        data[i + 3] = 255;
+      } else {
+        const v = raster[0][y][x];
+        data[i] = data[i + 1] = data[i + 2] = v;
+        data[i + 3] = 255;
+      }
     }
   }
-}
-
 
   ctx.putImageData(imageData, 0, 0);
 
@@ -145,6 +138,7 @@ for (let y = 0; y < height; y++) {
     smallRaster[0][y] = [];
     smallRaster[1][y] = [];
     smallRaster[2][y] = [];
+
     for (let x = 0; x < newW; x++) {
       const i = (y * newW + x) * 4;
       smallRaster[0][y][x] = smallImageData.data[i];
@@ -164,7 +158,7 @@ for (let y = 0; y < height; y++) {
 }
 
 /* ----------------------------------------
-   GeoTIFF レイヤ描画（共通）
+   3. GeoTIFF レイヤ描画
 ---------------------------------------- */
 function renderGeoTIFF(georaster) {
   if (currentLayer) map.removeLayer(currentLayer);
@@ -186,45 +180,92 @@ function renderGeoTIFF(georaster) {
 }
 
 /* ----------------------------------------
-   4. ファイル種別判定（S/L 選択統合）
+   4. TIFF 専用処理
+---------------------------------------- */
+async function handleTiffFile(file) {
+  showLoading("読み込み中…");
+
+  const reader = new FileReader();
+
+  reader.onloadstart = () => {
+    const totalMB = (file.size / 1024 / 1024).toFixed(1);
+    updateDetail(`0MB / ${totalMB}MB`);
+  };
+
+  reader.onprogress = (e) => {
+    if (e.lengthComputable) {
+      const loadedMB = (e.loaded / 1024 / 1024).toFixed(1);
+      const totalMB = (e.total / 1024 / 1024).toFixed(1);
+      updateDetail(`${loadedMB}MB / ${totalMB}MB`);
+    }
+  };
+
+  reader.onload = async () => {
+    let scale = 1;
+
+    if (file.size > THRESHOLD_1) {
+      document.getElementById("loadingText").textContent =
+        "縮小率を選択してください（L=1/2 大きい, S=1/4 小さい）";
+      updateDetail("キーボードで L または S を押してください");
+
+      scale = await askScaleKey();
+    }
+
+    await loadGeoTIFF(reader.result, file, scale);
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+/* ----------------------------------------
+   5. ファイル種別判定（統合 handleFile）
 ---------------------------------------- */
 async function handleFile(file) {
   const name = file.name.toLowerCase();
 
   if (name.endsWith(".tif") || name.endsWith(".tiff")) {
-    showLoading("読み込み中…");
-
-    const reader = new FileReader();
-
-    reader.onloadstart = () => {
-      const totalMB = (file.size / 1024 / 1024).toFixed(1);
-      updateDetail(`0MB / ${totalMB}MB`);
-    };
-
-    reader.onprogress = (e) => {
-      if (e.lengthComputable) {
-        const loadedMB = (e.loaded / 1024 / 1024).toFixed(1);
-        const totalMB = (e.total / 1024 / 1024).toFixed(1);
-        updateDetail(`${loadedMB}MB / ${totalMB}MB`);
-      }
-    };
-
-    reader.onload = async () => {
-      let scale = 1;
-
-      if (file.size > THRESHOLD_1) {
-        document.getElementById("loadingText").textContent =
-          "縮小率を選択してください（L=1/2 大きい, S=1/4 小さい）";
-        updateDetail("キーボードで L または S を押してください");
-
-        scale = await askScaleKey();
-      }
-
-      await loadGeoTIFF(reader.result, file, scale);
-    };
-
-    reader.readAsArrayBuffer(file);
-    return;
+    return handleTiffFile(file);
   }
+
+  return handleVectorFile(file); // ← data.js の関数
 }
 
+/* ----------------------------------------
+   6. ファイル選択
+---------------------------------------- */
+document.getElementById("fileInput").addEventListener("change", async (event) => {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+
+  for (const file of files) {
+    await handleFile(file);
+  }
+
+  event.target.value = "";
+});
+
+/* ----------------------------------------
+   7. ドラッグ＆ドロップ
+---------------------------------------- */
+const dropzone = document.getElementById("dropzone");
+
+dropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropzone.classList.add("dragover");
+});
+
+dropzone.addEventListener("dragleave", () => {
+  dropzone.classList.remove("dragover");
+});
+
+dropzone.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  dropzone.classList.remove("dragover");
+
+  const files = e.dataTransfer.files;
+  if (!files || files.length === 0) return;
+
+  for (const file of files) {
+    await handleFile(file);
+  }
+});
