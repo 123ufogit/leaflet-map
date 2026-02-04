@@ -163,13 +163,13 @@ async function loadGeoTIFF(arrayBuffer, file, scale = 1) {
 function renderGeoTIFF(georaster) {
   if (currentLayer) map.removeLayer(currentLayer);
 
+  const noData = georaster.noDataValue || georaster.metadata?.NODATA || 0;
+
   currentLayer = new GeoRasterLayer({
     georaster,
     opacity: 0.8,
     resolution: 128,
-    updateWhenZooming: true,
-    updateInterval: 0,
-    keepBuffer: 5,
+    noDataValue: noData,   // ★ 透明化のポイント
     pane: "geotiffPane"
   });
 
