@@ -68,8 +68,7 @@ const THRESHOLD_1 = 150 * 1024 * 1024;
    2. GeoTIFF 読み込み（縮小ロジック統合）
 ---------------------------------------- */
 async function loadGeoTIFF(arrayBuffer, file, scale = 1) {
-  document.getElementById("loadingText").textContent = "解析中…";
-  updateDetail("");
+  updateDetail("GeoTIFF を解析中…");
 
   const georaster = await parseGeoraster(arrayBuffer, {
     buildPyramid: false
@@ -78,10 +77,11 @@ async function loadGeoTIFF(arrayBuffer, file, scale = 1) {
   showTiffInfo(georaster, file);
 
   if (scale === 1) {
+    updateDetail("地図に描画しています…");
     return renderGeoTIFF(georaster);
   }
 
-  document.getElementById("loadingText").textContent = "縮小版を生成中…";
+  updateDetail("縮小版を生成中…");
 
   const width = georaster.width;
   const height = georaster.height;
@@ -154,6 +154,7 @@ async function loadGeoTIFF(arrayBuffer, file, scale = 1) {
     values: smallRaster
   };
 
+  updateDetail("地図に描画しています…");
   return renderGeoTIFF(lowresGeoraster);
 }
 
@@ -169,13 +170,14 @@ function renderGeoTIFF(georaster) {
     georaster,
     opacity: 0.8,
     resolution: 128,
-    noDataValue: noData,   // ★ 透明化のポイント
+    noDataValue: noData,
     pane: "geotiffPane"
   });
 
   currentLayer.addTo(map);
   map.fitBounds(currentLayer.getBounds());
 
+  updateDetail("完了！");
   hideLoading();
 }
 
@@ -183,7 +185,7 @@ function renderGeoTIFF(georaster) {
    4. TIFF 専用処理
 ---------------------------------------- */
 async function handleTiffFile(file) {
-  showLoading("読み込み中…");
+  showLoading("GeoTIFF を読み込んでいます…");
 
   const reader = new FileReader();
 
@@ -227,7 +229,7 @@ async function handleFile(file) {
     return handleTiffFile(file);
   }
 
-  return handleVectorFile(file); // ← data.js の関数
+  return handleVectorFile(file);
 }
 
 /* ----------------------------------------
