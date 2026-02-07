@@ -151,6 +151,8 @@ function loadCSV(path = "data/trees.csv") {
           const v = Number(row["材積"]);
           if (!isNaN(v)) html += `<div><strong>材積：</strong>${v.toFixed(2)} m³</div>`;
 
+          if (row["コメン?"]) html += `<div><strong>コメント：</strong>${row["コメン?"]}</div>`;
+          
           return html;
         })
         .addTo(layerCSV);
