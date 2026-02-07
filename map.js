@@ -84,10 +84,20 @@ const layerGSIort = L.tileLayer(
 }
 );
 
+const layerCSmap = L.tileLayer(
+  "https://forestgeo.info/opendata/17_ishikawa/noto/csmap_2024/{z}/{x}/{y}.webp",
+  {
+    attribution: "林野庁 CS立体図（2024）",
+    maxZoom: 30,
+    maxNativeZoom: 18
+  }
+);
+
 L.control.layers({
   "地理院地図（標準）": layerGSIstd,
   "OpenStreetMap": layerOSM,
   "地理院空中写真": layerGSIort
+  "CS立体図（2024）": layerCSmap
 }).addTo(map);
 
 /* ===== MiniMap ===== */
