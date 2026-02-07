@@ -138,10 +138,10 @@ function loadCSV(path = "data/trees.csv") {
     weight: 0.5
   });
 
-  // ★ コメントが "100年木" の場合 → 外側に白枠を追加
+  // ★ コメントが "100年木" の場合 → 白枠を追加
   if (row["コメン?"] === "100年木") {
     const outline = L.circleMarker([lat, lon], {
-      radius: markerRadius + 1,   // 外側に少し大きく
+      radius: markerRadius - 2,
       color: "#ffffff",           // 白枠
       weight: 2,                  // 太さ
       fillOpacity: 0              // 中は透明
