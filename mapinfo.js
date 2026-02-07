@@ -56,7 +56,7 @@ pointToLayer: (feature, latlng) => {
     }).eachLayer(layer => layerShuuhen.addLayer(layer));
   });
 
-/* ===== 起動メッセージ ===== */
+/* ===== 起動メッセージ ===== *
 window.onload = () => {
   alert(
     "Leaflet 0.9.0 を読み込みました。\n\n" +
@@ -65,4 +65,4 @@ window.onload = () => {
     "・現在地の取得\n" +
     "・属性情報の確認\n" 
   );
-};
+};/
