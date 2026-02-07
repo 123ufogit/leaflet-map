@@ -141,9 +141,9 @@ function loadCSV(path = "data/trees.csv") {
   // ★ コメントが "100年木" の場合 → 外側に白枠を追加
   if (row["コメン?"] === "100年木") {
     const outline = L.circleMarker([lat, lon], {
-      radius: markerRadius + 3,   // 外側に少し大きく
+      radius: markerRadius + 1,   // 外側に少し大きく
       color: "#ffffff",           // 白枠
-      weight: 3,                  // 太さ
+      weight: 2,                  // 太さ
       fillOpacity: 0              // 中は透明
     });
     outline.addTo(layerCSV);
