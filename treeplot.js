@@ -23,7 +23,7 @@ function parseCSV(text) {
 const layerMesh20 = L.layerGroup().addTo(map);
 const layerTLS    = L.layerGroup().addTo(map);
 const layerSCAN   = L.layerGroup().addTo(map);
-const layerCSV    = L.layerGroup().addTo(map);   // ← 先に宣言しないと loadAreaData が壊れる
+const layerCSV    = L.layerGroup().addTo(map);
 
 /* ===== TLSエリア（判定用 + 表示用） ===== */
 let areaIndexLayer = null;
