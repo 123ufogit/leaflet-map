@@ -96,7 +96,7 @@ const layerCSmap = L.tileLayer(
 L.control.layers({
   "地理院地図（標準）": layerGSIstd,
   "OpenStreetMap": layerOSM,
-  "地理院空中写真": layerGSIort
+  "地理院空中写真": layerGSIort,
   "CS立体図（2024）": layerCSmap
 }).addTo(map);
 
