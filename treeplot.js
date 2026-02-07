@@ -20,7 +20,7 @@ function parseCSV(text) {
 }
 
 /* ===== レイヤ宣言（順番が重要） ===== */
-const layerMesh20 = L.layerGroup().addTo(map);
+const layerMesh20 = L.layerGroup();
 const layerTLS    = L.layerGroup().addTo(map);
 const layerSCAN   = L.layerGroup().addTo(map);
 const layerCSV    = L.layerGroup().addTo(map);
@@ -195,9 +195,6 @@ map.on("zoomend", () => {
 /* ===== ズームによるレイヤ表示制御 ===== */
 map.on("zoomend", () => {
   const z = map.getZoom();
-
-  if (z >= 20) map.addLayer(layerMesh20);
-  else map.removeLayer(layerMesh20);
 
   if (z >= 14) map.addLayer(layerCSV);
   else map.removeLayer(layerCSV);
