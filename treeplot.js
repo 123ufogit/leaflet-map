@@ -129,16 +129,28 @@ function loadCSV(path = "data/trees.csv") {
 
         const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
 
-        L.circleMarker([lat, lon], {
-          radius: markerRadius,
-          color,
-          fillColor: color,
-          fillOpacity,
-          weight: 0.5
-        })
-        .bindPopup(() => {
-          let html = "";
+ // ★ メインのマーカー
+  const marker = L.circleMarker([lat, lon], {
+    radius: markerRadius,
+    color,
+    fillColor: color,
+    fillOpacity,
+    weight: 0.5
+  });
 
+  // ★ コメントが "100年木" の場合 → 外側に白枠を追加
+  if (row["コメン?"] === "100年木") {
+    const outline = L.circleMarker([lat, lon], {
+      radius: markerRadius + 3,   // 外側に少し大きく
+      color: "#ffffff",           // 白枠
+      weight: 3,                  // 太さ
+      fillOpacity: 0              // 中は透明
+    });
+    outline.addTo(layerCSV);
+  }
+
+  marker.bindPopup(() => {
+          let html = "";
           if (row["立木ID"]) html += `<div><strong>立木ID：</strong>${row["立木ID"]}</div>`;
           if (row["樹種"])   html += `<div><strong>樹種：</strong>${row["樹種"]}</div>`;
 
@@ -152,7 +164,6 @@ function loadCSV(path = "data/trees.csv") {
           if (!isNaN(v)) html += `<div><strong>材積：</strong>${v.toFixed(2)} m³</div>`;
 
           if (row["コメン?"]) html += `<div><strong>コメント：</strong>${row["コメン?"]}</div>`;
-          
           return html;
         })
         .addTo(layerCSV);
