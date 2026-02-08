@@ -140,15 +140,6 @@ function loadCSV(path = "data/trees.csv") {
 
         const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
 
-        // ★ メインのマーカー
-        const marker = L.circleMarker([lat, lon], {
-          radius: markerRadius,
-          color,
-          fillColor: color,
-          fillOpacity,
-          weight: 0.5
-        });
-
         // ★ コメントが "100年木" の場合 → 白枠を追加
         if (row["コメン?"] === "100年木") {
           const outline = L.circleMarker([lat, lon], {
@@ -159,6 +150,24 @@ function loadCSV(path = "data/trees.csv") {
           });
           outline.addTo(layerCSV);
         }
+        // ★ コメントが "100年木" の場合 → 白枠を追加
+        if (row["コメン?"] === "100年木") {
+          const outline = L.circleMarker([lat, lon], {
+            radius: markerRadius + 1,
+            color: "#000000",
+            weight: 3,
+            fillOpacity: 0
+          });
+          outline.addTo(layerCSV);
+        }
+        // ★ メインのマーカー
+        const marker = L.circleMarker([lat, lon], {
+          radius: markerRadius,
+          color,
+          fillColor: color,
+          fillOpacity,
+          weight: 0.5
+        });
 
         marker.bindPopup(() => {
           let html = "";
