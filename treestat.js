@@ -198,4 +198,7 @@ map.on("moveend", () => {
     相対幹距比：${RBR.toFixed(1)} %<br>
     ${cutInfo}
   `;
+   document.dispatchEvent(new CustomEvent("meshTreeStatsReady", {
+  detail: { targetMesh, trees }
+}));
 });
