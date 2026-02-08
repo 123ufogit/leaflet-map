@@ -295,3 +295,7 @@ map.on("click", () => {
     sidebar.classList.remove("open");
   }
 });
+
+document.dispatchEvent(new CustomEvent("meshTreeStatsReady", {
+  detail: { targetMesh, trees }
+}));
