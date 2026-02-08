@@ -1,11 +1,6 @@
-/*
-  treeplot.js version 0.9.4 + treeData 拡張
-  - URL パラメータから座標を受け取り map.setView() を実行
-  - レイヤ独立構造を維持
-  - CSV パース共通化
-  - TREES の circleMarker に最小半径 4px を適用
-  - ★ marker.treeData を treestat.js 用に付与
-*/
+/* ============================================================
+   treeplot.js version 0.9.5  — TLSエリア判定復元 + 20mバッファ拡張
+   ============================================================ */
 
 /* ===== URLパラメータから座標を受け取り、地図を移動 ===== */
 (function () {
@@ -36,7 +31,7 @@ const layerTLS    = L.layerGroup().addTo(map);
 const layerSCAN   = L.layerGroup().addTo(map);
 const layerCSV    = L.layerGroup().addTo(map);
 
-/* ===== TLSエリア ===== */
+/* ===== TLSエリア（判定用 + 表示用） ===== */
 let areaIndexLayer = null;
 
 fetch("data/TLS_area.geojson")
@@ -133,11 +128,12 @@ function loadCSV(path = "data/trees.csv") {
 
         const markerRadius = Math.max(diameter * 0.2, 4);
 
+        /* ===== 樹種カラー（指定どおり変更） ===== */
         let color = "#cccccc";
-        if (row["樹種"] === "スギ") color = "#99cc00";
-        if (row["樹種"] === "アテ") color = "#66ccff";
-        if (row["樹種"] === "ヒノキ") color = "#66ccff";
-        if (row["樹種"] === "アカマツ") color = "#66ccff";
+        if (row["樹種"] === "スギ")     color = "#99cc00";
+        if (row["樹種"] === "アテ")     color = "#66ccff";
+        if (row["樹種"] === "ヒノキ")   color = "#ff66cc";  // ★ ピンク
+        if (row["樹種"] === "アカマツ") color = "#8B4513";  // ★ 茶色
 
         const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
 
@@ -150,9 +146,9 @@ function loadCSV(path = "data/trees.csv") {
           weight: 0.5
         });
 
-        /* ★★★ treestat.js 用：統計計算データを marker に付与 ★★★ */
+        /* ===== treestat.js 用：treeData を付与（胸高直径のみ使用） ===== */
         marker.treeData = {
-          DBH: Number(row["胸高直?"]),
+          DBH: Number(row["胸高直径"]),
           Height: Number(row["樹高"]),
           Volume: Number(row["材積"]),
           Species: row["樹種"],
@@ -195,7 +191,7 @@ function loadCSV(path = "data/trees.csv") {
           const v = Number(row["材積"]);
           if (!isNaN(v)) html += `<div><strong>材積：</strong>${v.toFixed(2)} m³</div>`;
 
-          if (row["コメント"]) html += `<div><strong>コメント：</strong>${row["コメン?"]}</div>`;
+          if (row["コメント"]) html += `<div><strong>コメント：</strong>${row["コメント"]}</div>`;
           return html;
         });
 
@@ -214,15 +210,36 @@ function loadAreaData(folder) {
   loadCSV(`data/${folder}/trees.csv`);
 }
 
-/* ===== SCAN ラベル表示制御 ===== */
-map.on("zoomend", () => {
-  const show = map.getZoom() >= 20;
+/* ============================================================
+   ★ TLSエリア判定（20mバッファ付き）→ 自動エリア切替
+   ============================================================ */
 
-  layerSCAN.eachLayer(marker => {
-    const tt = marker.getTooltip();
-    if (!tt) return;
-    tt._container.style.display = show ? "block" : "none";
+let currentArea = null;
+
+map.on("moveend", () => {
+  if (!areaIndexLayer) return;
+
+  const c = map.getCenter();
+  const pt = turf.point([c.lng, c.lat]);
+
+  let newArea = null;
+
+  areaIndexLayer.eachLayer(layer => {
+    const feature = layer.feature;
+
+    // ★ 20m バッファで判定範囲を拡張
+    const buffered = turf.buffer(feature, 20, { units: "meters" });
+
+    if (turf.booleanPointInPolygon(pt, buffered)) {
+      newArea = feature.properties["エリア"];
+    }
   });
+
+  if (newArea && newArea !== currentArea) {
+    currentArea = newArea;
+    console.log("エリア切替:", currentArea);
+    loadAreaData(currentArea);
+  }
 });
 
 /* ===== レイヤコントロール ===== */
