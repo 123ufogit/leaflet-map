@@ -59,7 +59,13 @@
   <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  
+
+  <!-- ★ 初期表示レイヤー設定-->
+<script>
+  window.defaultBaseLayer = "gsi";      // ベースレイヤー
+  window.defaultOverlayCS = true;       // CS立体図（透過）を初期表示で ON
+</script>
+
   <!-- Custom JS（map → photo の順） -->
   <script src="map.js"></script>
   <script src="treeplot.js"></script>
