@@ -50,8 +50,8 @@ body {
 
 /* ===== サイドバー（全デバイス折り畳み式） ===== */
 #sidebar {
-  width: 40%;
-  height: 80%;
+  width: 45%;
+  height: 85%;
   background: rgba(244, 244, 244, 0.85);
   border-right: 1px solid #ccc;
   overflow-y: auto;
