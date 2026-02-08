@@ -2,12 +2,17 @@
    mapinfo.js  —  情報レイヤ（周辺施設 + TLSエリアリンク）
    ============================================================ */
 
+/* ------------------------------------------------------------
+   0. レイヤ宣言（初期は非表示）
+   ------------------------------------------------------------ */
+
+const layerShuuhen = L.layerGroup();      // 周辺施設（初期非表示）
+const layerTLSinfo = L.layerGroup();      // TLSエリア中心リンク（初期非表示）
+
 
 /* ------------------------------------------------------------
    1. 周辺施設レイヤ（points.geojson）
    ------------------------------------------------------------ */
-
-const layerShuuhen = L.layerGroup().addTo(map);
 
 fetch("data/points.geojson")
   .then(res => res.json())
@@ -60,7 +65,6 @@ fetch("data/points.geojson")
           `;
         }
 
-        // ★ 完全標準マーカー（外部アイコン依存なし）
         return L.marker(latlng).bindPopup(html);
       }
     }).eachLayer(layer => layerShuuhen.addLayer(layer));
@@ -96,9 +100,22 @@ fetch("data/TLS_area.geojson")
         </div>
       `;
 
-      // ★ ここも標準マーカーのみ
       L.marker([lat, lng])
         .bindPopup(html)
-        .addTo(map);
+        .addTo(layerTLSinfo);
     });
   });
+
+
+/* ------------------------------------------------------------
+   3. レイヤコントロールに登録（初期は非表示）
+   ------------------------------------------------------------ */
+
+L.control.layers(
+  null,
+  {
+    "周辺施設": layerShuuhen,
+    "TLSエリア（リンク）": layerTLSinfo
+  },
+  { position: "bottomleft" }
+).addTo(map);
