@@ -89,7 +89,7 @@ fetch("data/TLS_area.geojson")
       // ポップアップ HTML
       const html = `
         <div style="text-align:center;">
-          <b>${name}</b><br>
+          <b>森林調査：${name}</b><br>
           <a href="${link}" target="_blank" style="color:#0066cc;">
             このエリアの詳細を見る
           </a>
