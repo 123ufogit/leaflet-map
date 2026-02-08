@@ -31,7 +31,7 @@ function parseCSV(text) {
 }
 
 /* ===== レイヤ宣言（順番が重要） ===== */
-const layerMesh20 = L.layerGroup();
+const layerMesh20 = L.layerGroup().addTo(map);
 const layerTLS    = L.layerGroup().addTo(map);
 const layerSCAN   = L.layerGroup().addTo(map);
 const layerCSV    = L.layerGroup().addTo(map);
