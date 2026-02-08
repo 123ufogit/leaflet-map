@@ -2,8 +2,8 @@
    立木統計計算：中心点が含まれる mesh20 内の立木を集計
    ============================================================ */
 
-// ▼ 統計結果を表示する HTML 要素（あなたの HTML に追加しておく）
-const infoBox = document.getElementById("attrContent");  // 既存の属性パネルを利用
+// ▼ 統計結果を表示する HTML 要素（既存の属性パネル）
+const infoBox = document.getElementById("attrContent");
 
 // ▼ mesh20（判定用）を保持
 let mesh20IndexLayer = null;
@@ -41,7 +41,37 @@ map.on("moveend", () => {
 
   const meshID = targetMesh.properties.id;
 
-  // ▼ メッシュ内の立木を抽出
+  /* ============================================================
+     ★ ① メッシュ内部の TLS ポリゴン面積（㎡）を計算
+     ============================================================ */
+
+  let tlsArea = 0; // m2
+
+  if (areaIndexLayer) {
+    areaIndexLayer.eachLayer(layer => {
+      const poly = layer.feature;
+
+      // メッシュと TLS ポリゴンの交差部分を計算
+      const intersect = turf.intersect(targetMesh, poly);
+
+      if (intersect) {
+        tlsArea += turf.area(intersect); // m2
+      }
+    });
+  }
+
+  if (tlsArea === 0) {
+    infoBox.innerHTML = `
+      メッシュ番号：${meshID}<br>
+      調査地（TLS）外です。
+    `;
+    return;
+  }
+
+  /* ============================================================
+     ② メッシュ内の立木を抽出
+     ============================================================ */
+
   const trees = [];
 
   layerCSV.eachLayer(marker => {
@@ -49,19 +79,25 @@ map.on("moveend", () => {
     const p = turf.point([latlng.lng, latlng.lat]);
 
     if (turf.booleanPointInPolygon(p, targetMesh)) {
-      trees.push(marker.treeData);  // 後で treeData を marker に持たせる
+      trees.push(marker.treeData);
     }
   });
 
   if (trees.length === 0) {
-    infoBox.innerHTML = `メッシュ番号：${meshID}<br>立木なし`;
+    infoBox.innerHTML = `
+      メッシュ番号：${meshID}<br>
+      TLS面積：${tlsArea.toFixed(1)} ㎡<br>
+      立木なし
+    `;
     return;
   }
 
   /* ===== 統計計算 ===== */
 
-  // 本数
   const count = trees.length;
+
+  // ★ 立木密度（本/ha）
+  const density = count / (tlsArea / 10000);
 
   // 樹種構成
   const speciesCount = {};
@@ -79,19 +115,25 @@ map.on("moveend", () => {
   // 平均 DBH
   const avgDBH = trees.reduce((s, t) => s + t.DBH, 0) / count;
 
-  // 胸高断面積合計（m2/ha）
-  const G = trees.reduce((s, t) => {
-    const r = t.DBH / 200;  // DBH cm → 半径 m
+  // 胸高断面積合計（合計値）
+  const Gsum = trees.reduce((s, t) => {
+    const r = t.DBH / 200;
     return s + Math.PI * r * r;
   }, 0);
 
-  // 材積合計（m3/ha）
-  const V = trees.reduce((s, t) => s + t.Volume, 0);
+  // ★ 1ha換算
+  const Gha = (Gsum / tlsArea) * 10000;
 
-  // 形状比（樹高 / DBH）
+  // 材積合計（合計値）
+  const Vsum = trees.reduce((s, t) => s + t.Volume, 0);
+
+  // ★ 1ha換算
+  const Vha = (Vsum / tlsArea) * 10000;
+
+  // 形状比
   const shape = trees.reduce((s, t) => s + (t.Height / t.DBH), 0) / count;
 
-  // 相対幹距比（最近隣距離の平均 / 平均樹高）
+  // 相対幹距比
   const distances = [];
 
   for (let i = 0; i < trees.length; i++) {
@@ -115,7 +157,7 @@ map.on("moveend", () => {
   const avgSpacing = distances.reduce((s, d) => s + d, 0) / distances.length;
   const RBR = (avgSpacing / avgH) * 100;
 
-  // ▼ 伐採木（間伐=1）
+  // 伐採木
   const cutTrees = trees.filter(t => t.Cut === 1);
 
   let cutInfo = "";
@@ -127,10 +169,10 @@ map.on("moveend", () => {
       const r = t.DBH / 200;
       return s + Math.PI * r * r;
     }, 0);
-    const GcutRate = (Gcut / G * 100).toFixed(1);
+    const GcutRate = (Gcut / Gsum * 100).toFixed(1);
 
     const Vcut = cutTrees.reduce((s, t) => s + t.Volume, 0);
-    const VcutRate = (Vcut / V * 100).toFixed(1);
+    const VcutRate = (Vcut / Vsum * 100).toFixed(1);
 
     cutInfo = `
       <br><b>伐採情報</b><br>
@@ -144,12 +186,14 @@ map.on("moveend", () => {
   infoBox.innerHTML = `
     <h3>立木情報</h3>
     メッシュ番号：${meshID}<br>
+    TLS面積：${tlsArea.toFixed(1)} ㎡<br>
     本数：${count} 本<br>
+    立木密度：${density.toFixed(1)} 本/ha<br>
     樹種構成：${speciesRatio}<br>
     平均樹高：${avgH.toFixed(1)} m<br>
     平均DBH：${avgDBH.toFixed(1)} cm<br>
-    胸高断面積合計：${G.toFixed(2)} ㎡/ha<br>
-    材積合計：${V.toFixed(2)} ㎥/ha<br>
+    胸高断面積合計：${Gha.toFixed(2)} ㎡/ha<br>
+    材積合計：${Vha.toFixed(2)} ㎥/ha<br>
     形状比平均：${shape.toFixed(2)}<br>
     相対幹距比：${RBR.toFixed(1)} %<br>
     ${cutInfo}
