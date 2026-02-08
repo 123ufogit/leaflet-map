@@ -52,7 +52,7 @@ body {
 #sidebar {
   width: 40%;
   height: 80%;
-  background: #f4f4f4;
+  background: rgba(244, 244, 244, 0.85);
   border-right: 1px solid #ccc;
   overflow-y: auto;
 
