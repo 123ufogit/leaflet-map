@@ -7,7 +7,7 @@
    ------------------------------------------------------------ */
 
 const layerShuuhen = L.layerGroup();      // 周辺施設（初期非表示）
-const layerTLSinfo = L.layerGroup();      // TLSエリア中心リンク（初期非表示）
+const layerTLSinfo = L.layerGroup().addTo(map);      // TLSエリア中心リンク（初期非表示）
 
 
 /* ------------------------------------------------------------
