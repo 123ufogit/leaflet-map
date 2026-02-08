@@ -136,6 +136,8 @@ function loadCSV(path = "data/trees.csv") {
         let color = "#cccccc";
         if (row["樹種"] === "スギ") color = "#99cc00";
         if (row["樹種"] === "アテ") color = "#66ccff";
+        if (row["樹種"] === "ヒノキ") color = "#66ccff";
+        if (row["樹種"] === "アカマツ") color = "#66ccff";
 
         const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
 
@@ -160,7 +162,7 @@ function loadCSV(path = "data/trees.csv") {
         };
 
         /* ===== 100年木の白枠 ===== */
-        if (row["コメン?"] === "100年木") {
+        if (row["コメント"] === "100年木") {
           const blackoutline = L.circleMarker([lat, lon], {
             radius: markerRadius + 1,
             color: "#000000",
@@ -184,7 +186,7 @@ function loadCSV(path = "data/trees.csv") {
           if (row["立木ID"]) html += `<div><strong>立木ID：</strong>${row["立木ID"]}</div>`;
           if (row["樹種"])   html += `<div><strong>樹種：</strong>${row["樹種"]}</div>`;
 
-          const dbh = Number(row["胸高直?"]);
+          const dbh = Number(row["胸高直径"]);
           if (!isNaN(dbh)) html += `<div><strong>DBH：</strong>${dbh.toFixed(1)} cm</div>`;
 
           const h = Number(row["樹高"]);
@@ -193,7 +195,7 @@ function loadCSV(path = "data/trees.csv") {
           const v = Number(row["材積"]);
           if (!isNaN(v)) html += `<div><strong>材積：</strong>${v.toFixed(2)} m³</div>`;
 
-          if (row["コメン?"]) html += `<div><strong>コメント：</strong>${row["コメン?"]}</div>`;
+          if (row["コメント"]) html += `<div><strong>コメント：</strong>${row["コメン?"]}</div>`;
           return html;
         });
 
