@@ -76,3 +76,10 @@ document.addEventListener("meshTreeStatsReady", (e) => {
   const { targetMesh, trees } = e.detail;
   drawTreeHeightScatter(targetMesh, trees);
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("meshTreeStatsReady", (e) => {
+    const { targetMesh, trees } = e.detail;
+    drawTreeHeightScatter(targetMesh, trees);
+  });
+});
