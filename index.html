@@ -30,12 +30,19 @@
 
 <body>
 
-  <div id="header">
-    <button id="menuBtn" class="mobile-only">≡</button>
-    Leaflet 0.9.0（写真管理統合版）
-    <button id="locateBtn" class="locate-btn"></button>
-  </div>
+<div id="header">
+  <button id="menuBtn" class="mobile-only">≡</button>
+  Leaflet 0.9.0（写真管理統合版）
+  <button id="locateBtn" class="locate-btn"></button>
 
+  <!-- ★ 追加：QR ボタン -->
+  <button id="qrBtn" class="qr-btn">QR</button>
+
+  <!-- ★ 追加：QR ポップアップ -->
+  <div id="qrPopup" class="qr-popup">
+    <div id="qrCode"></div>
+  </div>
+</div>
   <div id="container">
 
     <!-- サイドバー -->
@@ -79,5 +86,6 @@
 </body>
 
 </html>
+
 
 
