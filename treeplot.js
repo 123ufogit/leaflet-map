@@ -197,7 +197,6 @@ function loadCSV(path = "data/trees.csv") {
           if (!isNaN(v)) html += `<div><strong>材積：</strong>${v.toFixed(2)} m³</div>`;
 
           if (row["コメント"]) html += `<div><strong>コメント：</strong>${row["コメント"]}</div>`;
-          if (currentArea) html += `<div><strong>エリア：</strong>${currentArea}</div>`;
           return html;
         });
 
