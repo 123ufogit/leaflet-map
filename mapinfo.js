@@ -7,15 +7,6 @@
    1. 周辺施設レイヤ（points.geojson）
    ------------------------------------------------------------ */
 
-// 周辺施設専用アイコン（青：人工物）
-const facilityIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34]
-});
-
 const layerShuuhen = L.layerGroup().addTo(map);
 
 fetch("data/points.geojson")
@@ -69,25 +60,16 @@ fetch("data/points.geojson")
           `;
         }
 
-        return L.marker(latlng, { icon: facilityIcon }).bindPopup(html);
+        // ★ 完全標準マーカー（外部アイコン依存なし）
+        return L.marker(latlng).bindPopup(html);
       }
     }).eachLayer(layer => layerShuuhen.addLayer(layer));
   });
 
 
-
 /* ------------------------------------------------------------
    2. TLSエリアの中心にリンク付きポップアップを配置
    ------------------------------------------------------------ */
-
-// TLSエリア専用アイコン（赤：重要地点）
-const tlsAreaIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x-red.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34]
-});
 
 fetch("data/TLS_area.geojson")
   .then(res => res.json())
@@ -97,14 +79,14 @@ fetch("data/TLS_area.geojson")
       const name = f.properties["エリア"];
       if (!name) return;
 
-      // ★ ポリゴンの中心点（centroid）
+      // ポリゴンの中心点（centroid）
       const centroid = turf.centroid(f);
       const [lng, lat] = centroid.geometry.coordinates;
 
-      // ★ treebrowse.html のリンク
+      // treebrowse.html のリンク
       const link = `https://123ufogit.github.io/leaflet-map/treebrowse.html?lat=${lat}&lng=${lng}&area=${encodeURIComponent(name)}`;
 
-      // ★ ポップアップ HTML
+      // ポップアップ HTML
       const html = `
         <div style="text-align:center;">
           <b>${name}</b><br>
@@ -114,10 +96,9 @@ fetch("data/TLS_area.geojson")
         </div>
       `;
 
-      // ★ 赤マーカーで配置
-      const marker = L.marker([lat, lng], { icon: tlsAreaIcon });
-
-      marker.bindPopup(html);
-      marker.addTo(map);
+      // ★ ここも標準マーカーのみ
+      L.marker([lat, lng])
+        .bindPopup(html)
+        .addTo(map);
     });
   });
