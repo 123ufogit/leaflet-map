@@ -1,7 +1,8 @@
 /*
-  style.css version 2.2.0
-  Unified Sidebar (80% width) — Mobile/Tablet/PC All Foldable
-  Locate Button: Mobile/Tablet Only
+  style.css version 3.0.0
+  Unified Sidebar (80% width, 90% height)
+  Mobile/Tablet = pointer: coarse
+  PC = pointer: fine
 */
 
 /* ===== 全体 ===== */
@@ -33,7 +34,7 @@ body {
   z-index: 3000;
 }
 
-/* PC でもメニューを表示する */
+/* メニューは全デバイスで表示 */
 .mobile-only {
   display: inline-block;
   font-size: 20px;
@@ -43,7 +44,7 @@ body {
 /* ===== レイアウト ===== */
 #container {
   display: flex;
-  height: calc(100dvh - 32px - 32px); /* header + footer */
+  height: calc(100dvh - 32px - 32px);
   margin-top: 32px;
   margin-bottom: 32px;
 }
@@ -51,13 +52,13 @@ body {
 /* ===== サイドバー（全デバイス折り畳み式） ===== */
 #sidebar {
   width: 80%;
+  height: 90%;                 /* ★ 画面の90%に収める */
   background: #f4f4f4;
   border-right: 1px solid #ccc;
   overflow-y: auto;
 
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 32px;                   /* ★ ヘッダーの下から開始 */
   left: 0;
 
   transform: translateX(-100%);
@@ -75,6 +76,9 @@ body {
   display: flex;
   background: #ddd;
   border-bottom: 1px solid #aaa;
+  position: sticky;            /* ★ タブを常に上に固定 */
+  top: 0;
+  z-index: 10;
 }
 
 .tab-buttons div {
@@ -128,13 +132,15 @@ body {
 }
 
 /* ===== 現在地ボタン ===== */
-/* PC（1025px以上）では非表示 */
-.locate-btn {
-  display: none;
+/* PC（マウス操作デバイス）では非表示 */
+@media (pointer: fine) {
+  .locate-btn {
+    display: none;
+  }
 }
 
-/* スマホ・タブレット（1024px以下）で表示 */
-@media (max-width: 1024px) {
+/* スマホ・タブレット（指操作デバイス）で表示 */
+@media (pointer: coarse) {
   .locate-btn {
     display: block;
     position: absolute;
@@ -216,8 +222,8 @@ body {
   pointer-events: auto;
 }
 
-/* スマホでは Dropzone を非表示 */
-@media (max-width: 768px) {
+/* スマホ・タブレットでは Dropzone を非表示 */
+@media (pointer: coarse) {
   #dropzone {
     display: none;
   }
