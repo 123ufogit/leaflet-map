@@ -165,3 +165,23 @@ map.on("locationerror", () => {
   alert("現在地を取得できませんでした");
 });
 
+// ===== QRコード生成（外部ライブラリ不要） =====
+function generateQR(text, size = 128) {
+  const canvas = document.createElement("canvas");
+  const qr = new QRious({
+    element: canvas,
+    value: text,
+    size: size
+  });
+  return canvas;
+}
+
+// QR ボタン動作
+document.getElementById("qrBtn").onclick = () => {
+  const popup = document.getElementById("qrPopup");
+  popup.style.display = popup.style.display === "block" ? "none" : "block";
+
+  const qrBox = document.getElementById("qrCode");
+  qrBox.innerHTML = ""; // クリア
+  qrBox.appendChild(generateQR("https://123ufogit.github.io/leaflet-map/"));
+};
