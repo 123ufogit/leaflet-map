@@ -1,5 +1,5 @@
 /* ============================================================
-   treeplot.js version 0.9.5  — TLSエリア判定復元 + 20mバッファ拡張
+   treeplot.js version 0.9.6 — TLSエリア判定 + 編集用エリア情報付与
    ============================================================ */
 
 /* ===== URLパラメータから座標を受け取り、地図を移動 ===== */
@@ -110,6 +110,8 @@ function loadSCAN(path = "data/scan.csv") {
 loadSCAN();
 
 /* ===== TREES（初期読み込み） ===== */
+let currentArea = null;  // ★ エリア名をここで管理
+
 function loadCSV(path = "data/trees.csv") {
   layerCSV.clearLayers();
 
@@ -146,15 +148,18 @@ function loadCSV(path = "data/trees.csv") {
           weight: 0.5
         });
 
-        /* ===== treestat.js 用：treeData を付与（胸高直径のみ使用） ===== */
+        /* ===== treestat.js / 編集用：treeData を拡張 ===== */
         marker.treeData = {
+          id: row["立木ID"] || null,
           DBH: Number(row["胸高直径"]),
           Height: Number(row["樹高"]),
           Volume: Number(row["材積"]),
           Species: row["樹種"],
           Cut: Number(row["間伐"]),
+          Comment: row["コメント"] || "",
           lon,
-          lat
+          lat,
+          area: currentArea || null   // ★ 現在のエリア名を付与
         };
 
         /* ===== 100年木の白枠 ===== */
@@ -192,6 +197,7 @@ function loadCSV(path = "data/trees.csv") {
           if (!isNaN(v)) html += `<div><strong>材積：</strong>${v.toFixed(2)} m³</div>`;
 
           if (row["コメント"]) html += `<div><strong>コメント：</strong>${row["コメント"]}</div>`;
+          if (currentArea) html += `<div><strong>エリア：</strong>${currentArea}</div>`;
           return html;
         });
 
@@ -213,8 +219,6 @@ function loadAreaData(folder) {
 /* ============================================================
    ★ TLSエリア判定（20mバッファ付き）→ 自動エリア切替
    ============================================================ */
-
-let currentArea = null;
 
 map.on("moveend", () => {
   if (!areaIndexLayer) return;
