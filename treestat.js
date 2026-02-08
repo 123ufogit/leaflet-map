@@ -1,6 +1,7 @@
 /* ============================================================
    立木統計計算：中心点が含まれる mesh20 内の立木を集計
    ============================================================ */
+console.log("areaIndexLayer =", areaIndexLayer);
 
 // ▼ 統計結果を表示する HTML 要素（既存の属性パネル）
 const infoBox = document.getElementById("attrContent");
