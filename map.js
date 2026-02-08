@@ -1,11 +1,12 @@
 /*
-  map.js version 0.9.1
+  map.js version 0.9.2
 
   Contains:
     - タブ切り替え
-    - サイドバー開閉（スマホ）
-    - 地図初期化
+    - サイドバー開閉
+    - 地図初期化（HTML側で初期レイヤー制御）
     - ベースレイヤー
+    - オーバーレイ（CS立体図 50%）
     - MiniMap
     - 属性ビューア
     - 十字線マーカー
@@ -13,7 +14,7 @@
     - 現在地取得
 */
 
-/* ===== スマホ用サイドバー開閉 ===== */
+/* ===== サイドバー開閉 ===== */
 document.getElementById("menuBtn").onclick = () => {
   document.getElementById("sidebar").classList.toggle("open");
 };
@@ -38,54 +39,78 @@ tabPhoto.onclick = () => {
   attrPanel.classList.remove("active");
 };
 
-/* ===== 地図初期化 ===== */
+/* ===== ベースレイヤー定義 ===== */
 const layerGSIstd = L.tileLayer(
   "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
-  { attribution: "地理院タイル（標準）" ,
-  maxZoom: 30,
-  maxNativeZoom: 18
-}
-  );
-
-const map = L.map("map", {
-  center: [37.303254, 136.915478],
-  zoom: 15,
-  maxZoom: 30,
-  layers: [layerGSIstd]
-});
-
-/* ===== ベースレイヤー ===== */
-const layerOSM = L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  { attribution: "© OpenStreetMap contributors" ,
-    maxZoom: 30,
-    maxNativeZoom: 18
-}
-);
-
-const layerGSIort = L.tileLayer(
-  "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
-  { attribution: "地理院タイル（空中写真）",
-  maxZoom: 30,
-  maxNativeZoom: 18
-}
-);
-
-const layerCSmap = L.tileLayer(
-  "https://forestgeo.info/opendata/17_ishikawa/noto/csmap_2024/{z}/{x}/{y}.webp",
   {
-    attribution: "林野庁 CS立体図（2024）",
+    attribution: "地理院タイル（標準）",
     maxZoom: 30,
     maxNativeZoom: 18
   }
 );
 
-L.control.layers({
-  "地理院地図（標準）": layerGSIstd,
-  "OpenStreetMap": layerOSM,
-  "地理院空中写真": layerGSIort,
-  "CS立体図（2024）": layerCSmap
-}).addTo(map);
+const layerOSM = L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    attribution: "© OpenStreetMap contributors",
+    maxZoom: 30,
+    maxNativeZoom: 18
+  }
+);
+
+const layerGSIort = L.tileLayer(
+  "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
+  {
+    attribution: "地理院タイル（空中写真）",
+    maxZoom: 30,
+    maxNativeZoom: 18
+  }
+);
+
+/* ===== CS立体図（透過50%）オーバーレイ ===== */
+const layerCSmap50 = L.tileLayer(
+  "https://forestgeo.info/opendata/17_ishikawa/noto/csmap_2024/{z}/{x}/{y}.webp",
+  {
+    attribution: "林野庁 CS立体図（2024）",
+    maxZoom: 30,
+    maxNativeZoom: 18,
+    opacity: 0.5
+  }
+);
+
+/* ===== 初期表示レイヤーを HTML 側の設定で切り替える ===== */
+
+// ベースレイヤー選択
+let baseLayer = layerGSIstd;  // デフォルト
+
+if (window.defaultBaseLayer === "osm") baseLayer = layerOSM;
+if (window.defaultBaseLayer === "ort") baseLayer = layerGSIort;
+
+// 初期レイヤー配列（ベースレイヤーは必ず1つ）
+let initialLayers = [baseLayer];
+
+// オーバーレイ（複数対応可能）
+if (window.defaultOverlayCS === true) initialLayers.push(layerCSmap50);
+
+/* ===== 地図初期化（★初期位置を石川県庁、ズーム9に変更） ===== */
+const map = L.map("map", {
+  center: [36.594553, 136.625639],   // ★ 石川県庁
+  zoom: 9,                            // ★ 石川県全体が入る
+  maxZoom: 30,
+  layers: initialLayers
+});
+
+/* ===== レイヤーコントロール ===== */
+L.control.layers(
+  {
+    "地理院地図（標準）": layerGSIstd,
+    "OpenStreetMap": layerOSM,
+    "地理院空中写真": layerGSIort
+  },
+  {
+    "CS立体図（透過50%）": layerCSmap50
+  }
+).addTo(map);
 
 /* ===== MiniMap ===== */
 const miniLayer = L.tileLayer(
@@ -165,7 +190,7 @@ map.on("locationerror", () => {
   alert("現在地を取得できませんでした");
 });
 
-// ===== QRコード生成（外部ライブラリ不要） =====
+/* ===== QRコード生成 ===== */
 function generateQR(text, size = 128) {
   const canvas = document.createElement("canvas");
   const qr = new QRious({
@@ -176,12 +201,11 @@ function generateQR(text, size = 128) {
   return canvas;
 }
 
-// QR ボタン動作
 document.getElementById("qrBtn").onclick = () => {
   const popup = document.getElementById("qrPopup");
   popup.style.display = popup.style.display === "block" ? "none" : "block";
 
   const qrBox = document.getElementById("qrCode");
-  qrBox.innerHTML = ""; // クリア
+  qrBox.innerHTML = "";
   qrBox.appendChild(generateQR("https://123ufogit.github.io/leaflet-map/"));
 };
