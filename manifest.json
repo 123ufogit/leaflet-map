@@ -1,0 +1,8 @@
+{
+  "name": "Forest Survey App",
+  "short_name": "ForestSurvey",
+  "start_url": "treebrowse.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2c3e50"
+}
