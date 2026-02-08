@@ -9,7 +9,7 @@ const STORE_QUEUE = "editQueue";    // 編集キュー（後で一括送信）
 let db;
 
 /* ===== DB 初期化 ===== */
-export function initDB() {
+function initDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, 1);
 
@@ -38,8 +38,7 @@ export function initDB() {
    1. tree.csv のローカルコピー管理
    ============================================================ */
 
-/* 立木データを保存（上書き） */
-export function saveTree(tree) {
+function saveTree(tree) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_TREES, "readwrite");
     tx.objectStore(STORE_TREES).put(tree);
@@ -48,8 +47,7 @@ export function saveTree(tree) {
   });
 }
 
-/* 立木データを取得 */
-export function getTree(id) {
+function getTree(id) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_TREES, "readonly");
     const req = tx.objectStore(STORE_TREES).get(id);
@@ -59,8 +57,7 @@ export function getTree(id) {
   });
 }
 
-/* 全立木データを取得 */
-export function getAllTrees() {
+function getAllTrees() {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_TREES, "readonly");
     const req = tx.objectStore(STORE_TREES).getAll();
@@ -74,8 +71,7 @@ export function getAllTrees() {
    2. 編集キュー（複数編集を一括送信するためのバッファ）
    ============================================================ */
 
-/* 編集内容をキューに追加 */
-export function queueEdit(editObj) {
+function queueEdit(editObj) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_QUEUE, "readwrite");
     tx.objectStore(STORE_QUEUE).add(editObj);
@@ -84,8 +80,7 @@ export function queueEdit(editObj) {
   });
 }
 
-/* キューの全内容を取得 */
-export function getEditQueue() {
+function getEditQueue() {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_QUEUE, "readonly");
     const req = tx.objectStore(STORE_QUEUE).getAll();
@@ -95,8 +90,7 @@ export function getEditQueue() {
   });
 }
 
-/* キューをクリア（送信後に実行） */
-export function clearEditQueue() {
+function clearEditQueue() {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_QUEUE, "readwrite");
     tx.objectStore(STORE_QUEUE).clear();
@@ -104,3 +98,15 @@ export function clearEditQueue() {
     tx.onerror = reject;
   });
 }
+
+/* ============================================================
+   ★ グローバル公開（tree-edit.js から呼べるようにする）
+   ============================================================ */
+
+window.initDB = initDB;
+window.saveTree = saveTree;
+window.getTree = getTree;
+window.getAllTrees = getAllTrees;
+window.queueEdit = queueEdit;
+window.getEditQueue = getEditQueue;
+window.clearEditQueue = clearEditQueue;
