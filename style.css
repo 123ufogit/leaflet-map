@@ -117,7 +117,7 @@ body {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   #locateBtn {
     display: block;
   }
@@ -183,7 +183,7 @@ body {
 }
 
 /* ===== スマホ最適化 ===== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
 
   .mobile-only {
     display: inline-block;
@@ -234,7 +234,7 @@ body {
   pointer-events: auto;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   #dropzone {
     display: none;
   }
