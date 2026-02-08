@@ -69,15 +69,21 @@
   window.defaultOverlayCS = true;       // CS立体図（透過）を初期表示で ON
 </script>
 
-  <!-- Custom JS（map → photo の順） -->
-  <script src="map.js"></script>
-  <script src="treeplot.js"></script>
-  <script src="treestat.js"></script>
-  <script src="photo.js"></script>
-  <script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-  }
-  </script>  
+<!-- 編集システム -->
+<script src="tree-db.js"></script>
+<script src="tree-edit.js"></script>
+<script src="sync.js"></script>
+
+<!-- 既存ロジック（地図 → 統計 → 写真） -->
+<script src="map.js"></script>
+<script src="treeplot.js"></script>
+<script src="treestat.js"></script>
+<script src="photo.js"></script>
+  
+<script>
+ if ("serviceWorker" in navigator) {
+   navigator.serviceWorker.register("service-worker.js");
+ }
+</script>  
 </body>
 </html>
