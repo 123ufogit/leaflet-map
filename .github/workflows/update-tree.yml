@@ -1,0 +1,79 @@
+name: Update tree.csv from Issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  update-tree:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract JSON from Issue body
+        id: extract
+        run: |
+          echo "BODY<<EOF" >> $GITHUB_ENV
+          echo "${{ github.event.issue.body }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Parse JSON
+        id: parse
+        run: |
+          BODY="${BODY}"
+          # JSON 部分だけ抽出
+          JSON=$(echo "$BODY" | sed -n '/```json/,/```/p' | sed '1d;$d')
+          echo "json=$JSON" >> $GITHUB_OUTPUT
+
+      - name: Install jq & csvkit
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq csvkit
+
+      - name: Apply edits to CSV
+        run: |
+          JSON='${{ steps.parse.outputs.json }}'
+          AREA=$(echo "$JSON" | jq -r '.[0].area')
+          CSV_PATH="data/$AREA/tree.csv"
+
+          echo "Updating $CSV_PATH"
+
+          # CSV を一時ファイルにコピー
+          cp "$CSV_PATH" tree_tmp.csv
+
+          # 1件ずつ編集を適用
+          echo "$JSON" | jq -c '.[]' | while read edit; do
+            ID=$(echo "$edit" | jq -r '.id')
+            CHANGES=$(echo "$edit" | jq -c '.changes')
+
+            # CSV の該当行を更新
+            csvsql --query "
+              SELECT
+                CASE WHEN id = '$ID' THEN json_extract('$CHANGES','DBH') ELSE DBH END AS DBH,
+                CASE WHEN id = '$ID' THEN json_extract('$CHANGES','Height') ELSE Height END AS Height,
+                CASE WHEN id = '$ID' THEN json_extract('$CHANGES','Volume') ELSE Volume END AS Volume,
+                CASE WHEN id = '$ID' THEN json_extract('$CHANGES','Comment') ELSE Comment END AS Comment,
+                id, lat, lng
+              FROM tree_tmp
+            " tree_tmp.csv > tree_new.csv
+
+            mv tree_new.csv tree_tmp.csv
+          done
+
+          mv tree_tmp.csv "$CSV_PATH"
+
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update tree.csv from Issue #${{ github.event.issue.number }}"
+          git push
+
+      - name: Close Issue
+        uses: peter-evans/close-issue@v2
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment: "tree.csv を更新しました。"
