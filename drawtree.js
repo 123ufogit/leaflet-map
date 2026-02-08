@@ -1,5 +1,5 @@
 /* ============================================================
-   drawtree.js — 樹高プロファイル（三角形）描画モジュール
+   drawtree.js — 樹高プロファイル（三角形）描画モジュール（最新版）
    ============================================================ */
 
 // グラフインスタンス（再描画時に破棄するため）
@@ -43,6 +43,13 @@ const trianglePlugin = {
     const dataset = chart.data.datasets[0];
     const meta = chart.getDatasetMeta(0);
 
+    const trees = dataset.raw;
+
+    // ▼ 南北方向（lat）の正規化用 min/max
+    const lats = trees.map(t => t.lat);
+    const latMin = Math.min(...lats);
+    const latMax = Math.max(...lats);
+
     dataset.raw.forEach((t, index) => {
       const color = getSpeciesColor(t.Species);
 
@@ -50,36 +57,42 @@ const trianglePlugin = {
       const yScale = chart.scales.y;
 
       const xPixel = meta.data[index].x;
-      const yPixel = meta.data[index].y;
 
-      const dbh_m = dbhToMeters(t.DBH);
+      // ▼ 樹高 → Y ピクセル
+      const apexY = yScale.getPixelForValue(t.Height);
+
+      // ▼ DBH を 20m メッシュ幅で割って正規化
+      const dbh_m = dbhToMeters(t.DBH) / 20;
       const halfBasePx =
         (dbh_m / (xScale.max - xScale.min)) * xScale.width / 2;
 
-      const apexX = xPixel;
-      const apexY = yScale.getPixelForValue(t.Height);
-
       const leftX = xPixel - halfBasePx;
-      const leftY = yScale.getPixelForValue(0);
-
       const rightX = xPixel + halfBasePx;
-      const rightY = yScale.getPixelForValue(0);
+      const baseY = yScale.getPixelForValue(0);
+
+      // ▼ 南北方向の正規化（0〜1）
+      const normY = (t.lat - latMin) / (latMax - latMin);
+
+      // ▼ 塗りつぶし透明度（0=0.6, 1=0.2）
+      const alpha = 0.6 - 0.4 * normY;
 
       ctx.beginPath();
-      ctx.moveTo(apexX, apexY);
-      ctx.lineTo(leftX, leftY);
-      ctx.lineTo(rightX, rightY);
+      ctx.moveTo(xPixel, apexY);
+      ctx.lineTo(leftX, baseY);
+      ctx.lineTo(rightX, baseY);
       ctx.closePath();
 
-      // 伐採木 → 塗りつぶしなし
+      // ▼ 伐採木 → 塗りつぶしなし、枠線点線
       if (t.Cut === 1) {
         ctx.fillStyle = "rgba(0,0,0,0)";
+        ctx.setLineDash([4, 3]);
       } else {
-        ctx.fillStyle = hexToRgba(color, 0.5);
+        ctx.fillStyle = hexToRgba(color, alpha);
+        ctx.setLineDash([]); // 実線
       }
       ctx.fill();
 
-      // コメントあり → 将来木（枠線太く）
+      // ▼ コメントあり → 将来木（枠線太く）
       const isFutureTree = (t.Comment && t.Comment.trim() !== "");
 
       ctx.strokeStyle = color;
@@ -109,7 +122,6 @@ function drawTreeHeightScatter(targetMesh, trees) {
   // ▼ attrContent に canvas を追加
   const infoBox = document.getElementById("attrContent");
 
-  // 既存内容を壊さず追加
   infoBox.innerHTML += `
     <h3>樹高プロファイル（三角形）</h3>
     <canvas id="heightScatter" width="300" height="200"></canvas>
@@ -122,14 +134,16 @@ function drawTreeHeightScatter(targetMesh, trees) {
     heightChart.destroy();
   }
 
-  // ▼ Chart.js 初期化（plugin 登録）
+  // ▼ Chart.js 初期化（点を消す・縦軸0固定）
   heightChart = new Chart(ctx, {
     type: "scatter",
     data: {
       datasets: [{
         label: "樹高",
         data: scatterData,
-        raw: trees
+        raw: trees,
+        pointRadius: 0,
+        pointHoverRadius: 0
       }]
     },
     options: {
@@ -140,6 +154,7 @@ function drawTreeHeightScatter(targetMesh, trees) {
           title: { display: true, text: "正規化 X (0=西端, 1=東端)" }
         },
         y: {
+          min: 0,
           title: { display: true, text: "樹高 (m)" }
         }
       }
