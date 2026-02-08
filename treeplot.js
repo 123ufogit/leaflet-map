@@ -212,14 +212,6 @@ map.on("zoomend", () => {
   });
 });
 
-/* ===== ズームによるレイヤ表示制御 ===== */
-map.on("zoomend", () => {
-  const z = map.getZoom();
-
-  if (z >= 14) map.addLayer(layerCSV);
-  else map.removeLayer(layerCSV);
-});
-
 /* ===== 中心点の TLS エリア判定 ===== */
 let currentArea = null;
 
