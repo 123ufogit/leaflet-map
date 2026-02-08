@@ -1,5 +1,5 @@
 /* ============================================================
-   treeplot.js version 0.9.6 — TLSエリア判定 + 編集用エリア情報付与
+   treeplot.js version 0.9.7 — TLSエリア判定 + 編集用エリア情報付与 + エリアラベル
    ============================================================ */
 
 /* ===== URLパラメータから座標を受け取り、地図を移動 ===== */
@@ -31,7 +31,7 @@ const layerTLS    = L.layerGroup().addTo(map);
 const layerSCAN   = L.layerGroup().addTo(map);
 const layerCSV    = L.layerGroup().addTo(map);
 
-/* ===== TLSエリア（判定用 + 表示用） ===== */
+/* ===== TLSエリア（判定用 + 表示用 + ラベル） ===== */
 let areaIndexLayer = null;
 
 fetch("data/TLS_area.geojson")
@@ -43,7 +43,7 @@ fetch("data/TLS_area.geojson")
       style: { color: "#000", weight: 1, fillOpacity: 0 }
     });
 
-    // 表示用（青枠）
+    // 表示用（青枠 + エリア名ラベル）
     L.geoJSON(json, {
       style: {
         color: "#0066ff",
@@ -51,6 +51,26 @@ fetch("data/TLS_area.geojson")
         fill: false
       },
       onEachFeature: (feature, layer) => {
+
+        /* ★★★ エリア名ラベル（背景なし・文字だけ） ★★★ */
+        const center = layer.getBounds().getCenter();
+        const areaName = feature.properties["エリア"];
+
+        const label = L.marker(center, {
+          icon: L.divIcon({
+            className: "area-label",
+            html: `<span style="
+              color:#0066ff;
+              font-size:16px;
+              font-weight:bold;
+            ">${areaName}</span>`
+          }),
+          interactive: false
+        });
+
+        label.addTo(layerTLS);
+
+        /* ポップアップ（既存） */
         if (feature.properties) {
           const html = Object.entries(feature.properties)
             .map(([k, v]) => `<b>${k}</b>: ${v}`)
@@ -130,12 +150,12 @@ function loadCSV(path = "data/trees.csv") {
 
         const markerRadius = Math.max(diameter * 0.2, 4);
 
-        /* ===== 樹種カラー（指定どおり変更） ===== */
+        /* ===== 樹種カラー ===== */
         let color = "#cccccc";
         if (row["樹種"] === "スギ")     color = "#99cc00";
         if (row["樹種"] === "アテ")     color = "#66ccff";
-        if (row["樹種"] === "ヒノキ")   color = "#ff66cc";  // ★ ピンク
-        if (row["樹種"] === "アカマツ") color = "#8B4513";  // ★ 茶色
+        if (row["樹種"] === "ヒノキ")   color = "#ff66cc";
+        if (row["樹種"] === "アカマツ") color = "#8B4513";
 
         const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
 
@@ -148,7 +168,7 @@ function loadCSV(path = "data/trees.csv") {
           weight: 0.5
         });
 
-        /* ===== treestat.js / 編集用：treeData を拡張 ===== */
+        /* ===== 編集用データ ===== */
         marker.treeData = {
           id: row["立木ID"] || null,
           DBH: Number(row["胸高直径"]),
@@ -159,29 +179,15 @@ function loadCSV(path = "data/trees.csv") {
           Comment: row["コメント"] || "",
           lon,
           lat,
-          area: currentArea || null   // ★ 現在のエリア名を付与
+          area: currentArea || null
         };
 
-        /* ===== 100年木の白枠 ===== */
-        if (row["コメント"] === "100年木") {
-          const blackoutline = L.circleMarker([lat, lon], {
-            radius: markerRadius + 1,
-            color: "#000000",
-            weight: 3,
-            fillOpacity: 0
-          });
-          blackoutline.addTo(layerCSV);
+        /* ★★★ 編集フォームを開くイベント ★★★ */
+        marker.on("click", () => {
+          openTreeEditForm(marker.treeData);
+        });
 
-          const whiteoutline = L.circleMarker([lat, lon], {
-            radius: markerRadius + 1,
-            color: "#ffffff",
-            weight: 2,
-            fillOpacity: 0
-          });
-          whiteoutline.addTo(layerCSV);
-        }
-
-        /* ===== ポップアップ ===== */
+        /* ===== ポップアップ（エリア名は表示しない） ===== */
         marker.bindPopup(() => {
           let html = "";
           if (row["立木ID"]) html += `<div><strong>立木ID：</strong>${row["立木ID"]}</div>`;
@@ -230,7 +236,6 @@ map.on("moveend", () => {
   areaIndexLayer.eachLayer(layer => {
     const feature = layer.feature;
 
-    // ★ 20m バッファで判定範囲を拡張
     const buffered = turf.buffer(feature, 20, { units: "meters" });
 
     if (turf.booleanPointInPolygon(pt, buffered)) {
