@@ -1,11 +1,22 @@
 /*
-  treeplot.js version 0.9.3
+  treeplot.js version 0.9.4
+  - URL パラメータから座標を受け取り map.setView() を実行
   - レイヤ独立構造を維持
   - CSV パース共通化
-  - layerCSV の宣言順修正
-  - TLS_area.geojson の二重 fetch 解消
-  - TREES の circleMarker に最小半径 4px を適用（クリック改善）
+  - TREES の circleMarker に最小半径 4px を適用
 */
+
+/* ===== URLパラメータから座標を受け取り、地図を移動 ===== */
+/* ★ map.js で地図が初期化された直後に実行されるため、この位置が最適 */
+(function () {
+  const params = new URLSearchParams(location.search);
+  const lat = parseFloat(params.get("lat"));
+  const lng = parseFloat(params.get("lng"));
+
+  if (!isNaN(lat) && !isNaN(lng)) {
+    map.setView([lat, lng], 18);
+  }
+})();
 
 /* ===== 共通：CSV パーサ ===== */
 function parseCSV(text) {
@@ -129,27 +140,27 @@ function loadCSV(path = "data/trees.csv") {
 
         const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
 
- // ★ メインのマーカー
-  const marker = L.circleMarker([lat, lon], {
-    radius: markerRadius,
-    color,
-    fillColor: color,
-    fillOpacity,
-    weight: 0.5
-  });
+        // ★ メインのマーカー
+        const marker = L.circleMarker([lat, lon], {
+          radius: markerRadius,
+          color,
+          fillColor: color,
+          fillOpacity,
+          weight: 0.5
+        });
 
-  // ★ コメントが "100年木" の場合 → 白枠を追加
-  if (row["コメン?"] === "100年木") {
-    const outline = L.circleMarker([lat, lon], {
-      radius: markerRadius + 1,
-      color: "#ffffff",           // 白枠
-      weight: 2,                  // 太さ
-      fillOpacity: 0              // 中は透明
-    });
-    outline.addTo(layerCSV);
-  }
+        // ★ コメントが "100年木" の場合 → 白枠を追加
+        if (row["コメン?"] === "100年木") {
+          const outline = L.circleMarker([lat, lon], {
+            radius: markerRadius + 1,
+            color: "#ffffff",
+            weight: 2,
+            fillOpacity: 0
+          });
+          outline.addTo(layerCSV);
+        }
 
-  marker.bindPopup(() => {
+        marker.bindPopup(() => {
           let html = "";
           if (row["立木ID"]) html += `<div><strong>立木ID：</strong>${row["立木ID"]}</div>`;
           if (row["樹種"])   html += `<div><strong>樹種：</strong>${row["樹種"]}</div>`;
