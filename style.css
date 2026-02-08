@@ -1,6 +1,5 @@
 /*
   style.css version 3.0.0
-  Unified Sidebar (80% width, 90% height)
   Mobile/Tablet = pointer: coarse
   PC = pointer: fine
 */
@@ -51,8 +50,8 @@ body {
 
 /* ===== サイドバー（全デバイス折り畳み式） ===== */
 #sidebar {
-  width: 80%;
-  height: 90%;                 /* ★ 画面の90%に収める */
+  width: 50%;
+  height: 60%;
   background: #f4f4f4;
   border-right: 1px solid #ccc;
   overflow-y: auto;
