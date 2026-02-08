@@ -209,3 +209,81 @@ document.getElementById("qrBtn").onclick = () => {
   qrBox.innerHTML = "";
   qrBox.appendChild(generateQR("https://123ufogit.github.io/leaflet-map/"));
 };
+
+/* ============================================================
+   ★ デバイスの向き付き 現在地マーカー（コンパス機能）
+   ============================================================ */
+
+let heading = 0;          // デバイスの向き（度）
+let userMarker = null;    // 現在地マーカー
+let lastRotate = 0;       // 回転の間引き用
+
+/* ===== デバイスの向きを取得 ===== */
+function enableCompass() {
+  if (typeof DeviceOrientationEvent === "undefined") {
+    console.log("DeviceOrientation API 未対応");
+    return;
+  }
+
+  // iOS の場合は許可が必要
+  if (typeof DeviceOrientationEvent.requestPermission === "function") {
+    DeviceOrientationEvent.requestPermission()
+      .then(state => {
+        if (state === "granted") {
+          window.addEventListener("deviceorientation", handleOrientation);
+        } else {
+          alert("コンパス利用が許可されませんでした");
+        }
+      });
+  } else {
+    // Android / PC
+    window.addEventListener("deviceorientation", handleOrientation);
+  }
+}
+
+function handleOrientation(e) {
+  // iOS: webkitCompassHeading（北=0°）
+  if (e.webkitCompassHeading !== undefined) {
+    heading = e.webkitCompassHeading;
+  } else {
+    // Android: alpha（デバイスの向き）
+    heading = 360 - e.alpha;
+  }
+
+  // 回転を間引き（10fps）
+  const now = Date.now();
+  if (now - lastRotate > 100 && userMarker && userMarker.getElement()) {
+    userMarker.getElement().style.transform = `rotate(${heading}deg)`;
+    lastRotate = now;
+  }
+}
+
+/* ===== 現在地ボタン押下 ===== */
+document.getElementById("locateBtn").onclick = () => {
+  enableCompass();  // ← コンパス開始
+  map.locate({ watch: true, setView: true, maxZoom: 17 });
+};
+
+/* ===== 現在地を取得したとき ===== */
+map.on("locationfound", (e) => {
+  const latlng = e.latlng;
+
+  if (!userMarker) {
+    // 初回のみマーカー作成
+    userMarker = L.marker(latlng, {
+      icon: L.divIcon({
+        className: "heading-icon",
+        html: `<div class="arrow"></div>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+      })
+    }).addTo(map);
+  } else {
+    userMarker.setLatLng(latlng);
+  }
+
+  // 向きに合わせて回転
+  if (userMarker.getElement()) {
+    userMarker.getElement().style.transform = `rotate(${heading}deg)`;
+  }
+});
