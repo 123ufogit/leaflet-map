@@ -11,11 +11,14 @@
 
   <!-- Pannellum -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2c3e50">
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="label.css">
   <link rel="stylesheet" href="photo.css">
+  
 </head>
 
 <body>
@@ -71,7 +74,10 @@
   <script src="treeplot.js"></script>
   <script src="treestat.js"></script>
   <script src="photo.js"></script>
-
+  <script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+  </script>  
 </body>
-
 </html>
