@@ -1,13 +1,13 @@
 /*
-  treeplot.js version 0.9.4
+  treeplot.js version 0.9.4 + treeData 拡張
   - URL パラメータから座標を受け取り map.setView() を実行
   - レイヤ独立構造を維持
   - CSV パース共通化
   - TREES の circleMarker に最小半径 4px を適用
+  - ★ marker.treeData を treestat.js 用に付与
 */
 
 /* ===== URLパラメータから座標を受け取り、地図を移動 ===== */
-/* ★ map.js で地図が初期化された直後に実行されるため、この位置が最適 */
 (function () {
   const params = new URLSearchParams(location.search);
   const lat = parseFloat(params.get("lat"));
@@ -30,13 +30,13 @@ function parseCSV(text) {
   });
 }
 
-/* ===== レイヤ宣言（順番が重要） ===== */
+/* ===== レイヤ宣言 ===== */
 const layerMesh20 = L.layerGroup().addTo(map);
 const layerTLS    = L.layerGroup().addTo(map);
 const layerSCAN   = L.layerGroup().addTo(map);
 const layerCSV    = L.layerGroup().addTo(map);
 
-/* ===== TLSエリア（判定用 + 表示用） ===== */
+/* ===== TLSエリア ===== */
 let areaIndexLayer = null;
 
 fetch("data/TLS_area.geojson")
@@ -131,7 +131,6 @@ function loadCSV(path = "data/trees.csv") {
         const girth = parseFloat(row["幹周"]);
         const diameter = girth / Math.PI;
 
-        // ★ 最小半径 4px を保証（クリック改善）
         const markerRadius = Math.max(diameter * 0.2, 4);
 
         let color = "#cccccc";
@@ -140,7 +139,7 @@ function loadCSV(path = "data/trees.csv") {
 
         const fillOpacity = row["間伐"] === "1" ? 0 : 0.6;
 
-                // ★ メインのマーカー
+        /* ===== メインのマーカー ===== */
         const marker = L.circleMarker([lat, lon], {
           radius: markerRadius,
           color,
@@ -148,7 +147,19 @@ function loadCSV(path = "data/trees.csv") {
           fillOpacity,
           weight: 0.5
         });
-        // ★ コメントが "100年木" の場合 → 白枠を追加
+
+        /* ★★★ treestat.js 用：統計計算データを marker に付与 ★★★ */
+        marker.treeData = {
+          DBH: Number(row["胸高直?"]),
+          Height: Number(row["樹高"]),
+          Volume: Number(row["材積"]),
+          Species: row["樹種"],
+          Cut: Number(row["間伐"]),
+          lon,
+          lat
+        };
+
+        /* ===== 100年木の白枠 ===== */
         if (row["コメン?"] === "100年木") {
           const blackoutline = L.circleMarker([lat, lon], {
             radius: markerRadius + 1,
@@ -157,9 +168,7 @@ function loadCSV(path = "data/trees.csv") {
             fillOpacity: 0
           });
           blackoutline.addTo(layerCSV);
-        }
-        // ★ コメントが "100年木" の場合 → 白枠を追加
-        if (row["コメン?"] === "100年木") {
+
           const whiteoutline = L.circleMarker([lat, lon], {
             radius: markerRadius + 1,
             color: "#ffffff",
@@ -169,6 +178,7 @@ function loadCSV(path = "data/trees.csv") {
           whiteoutline.addTo(layerCSV);
         }
 
+        /* ===== ポップアップ ===== */
         marker.bindPopup(() => {
           let html = "";
           if (row["立木ID"]) html += `<div><strong>立木ID：</strong>${row["立木ID"]}</div>`;
@@ -185,8 +195,9 @@ function loadCSV(path = "data/trees.csv") {
 
           if (row["コメン?"]) html += `<div><strong>コメント：</strong>${row["コメン?"]}</div>`;
           return html;
-        })
-        .addTo(layerCSV);
+        });
+
+        marker.addTo(layerCSV);
       });
     });
 }
@@ -210,32 +221,6 @@ map.on("zoomend", () => {
     if (!tt) return;
     tt._container.style.display = show ? "block" : "none";
   });
-});
-
-/* ===== 中心点の TLS エリア判定 ===== */
-let currentArea = null;
-
-map.on("moveend", () => {
-  if (!areaIndexLayer) return;
-
-  const c = map.getCenter();
-  const pt = turf.point([c.lng, c.lat]);
-
-  let newArea = null;
-
-  areaIndexLayer.eachLayer(layer => {
-    const feature = layer.feature;
-    const buffered = turf.buffer(feature, 20, { units: "meters" });
-    if (turf.booleanPointInPolygon(pt, feature)) {
-      newArea = feature.properties["エリア"];
-    }
-  });
-
-  if (newArea && newArea !== currentArea) {
-    currentArea = newArea;
-    console.log("エリア切替:", currentArea);
-    loadAreaData(currentArea);
-  }
 });
 
 /* ===== レイヤコントロール ===== */
