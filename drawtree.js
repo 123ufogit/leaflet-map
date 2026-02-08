@@ -136,7 +136,7 @@ function drawTreeHeightScatter(targetMesh, trees) {
       scales: {
         x: {
           min: 0,
-          max: 20,
+          max: 1,
           title: { display: true, text: "正規化 X (0=西端, 1=東端)" }
         },
         y: {
