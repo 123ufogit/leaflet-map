@@ -2,15 +2,12 @@
    sync.js — 編集キューを GitHub Issue に一括送信する
    ============================================================ */
 
-import { getEditQueue, clearEditQueue } from "./tree-db.js";
-
 /* ===== GitHub API 設定 ===== */
 const GITHUB_OWNER = "123ufogit";
 const GITHUB_REPO = "leaflet-map";
 
 /* ===== GitHub Issue を作成する関数 ===== */
 async function createGitHubIssue(title, body) {
-  // ★ 重要：GitHub Token はユーザー入力 or ローカル保存（安全な方法で）
   const token = localStorage.getItem("github_token");
   if (!token) {
     alert("GitHub Token が設定されていません。");
@@ -38,13 +35,13 @@ async function createGitHubIssue(title, body) {
    編集キューを GitHub に送信するメイン関数
    ============================================================ */
 
-export async function syncEdits() {
+async function syncEdits() {
   if (!navigator.onLine) {
     console.log("オフラインのため同期できません");
     return;
   }
 
-  const queue = await getEditQueue();
+  const queue = await window.getEditQueue();
   if (queue.length === 0) {
     console.log("同期する編集はありません");
     return;
@@ -86,7 +83,7 @@ Please update the CSV accordingly.
   }
 
   /* ===== 送信成功したらキューをクリア ===== */
-  await clearEditQueue();
+  await window.clearEditQueue();
   alert("編集内容を GitHub に送信しました（Issue 作成済み）");
 }
 
@@ -98,3 +95,6 @@ window.addEventListener("online", () => {
   console.log("オンライン復帰 → 自動同期を開始");
   syncEdits();
 });
+
+/* ===== グローバル公開 ===== */
+window.syncEdits = syncEdits;
