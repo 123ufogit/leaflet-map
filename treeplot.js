@@ -224,6 +224,7 @@ map.on("moveend", () => {
 
   areaIndexLayer.eachLayer(layer => {
     const feature = layer.feature;
+    const buffered = turf.buffer(feature, 20, { units: "meters" });
     if (turf.booleanPointInPolygon(pt, feature)) {
       newArea = feature.properties["エリア"];
     }
