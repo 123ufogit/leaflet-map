@@ -99,6 +99,10 @@ const map = L.map("map", {
   maxZoom: 30,
   layers: initialLayers
 });
+// ★ 初期レイアウト確定後に Leaflet のサイズを再計算（安全）
+setTimeout(() => {
+  map.invalidateSize();
+}, 200);
 
 /* ===== レイヤーコントロール ===== */
 L.control.layers(
