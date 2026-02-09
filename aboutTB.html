@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Leaflet Tree Browser 0.1 機能概要</title>
+<style>
+  body {
+    font-family: "Segoe UI", sans-serif;
+    margin: 40px;
+    line-height: 1.6;
+  }
+  h1 { font-size: 28px; margin-bottom: 10px; }
+  h2 { font-size: 20px; margin-top: 28px; }
+  ul { margin-top: 6px; }
+  .section { margin-bottom: 22px; }
+</style>
+</head>
+<body>
+
+<h1>🌲 Leaflet Tree Browser 0.1 — 機能概要</h1>
+<p>森林調査のための <b>地図 × 立木データ × TLS × 写真 × 統計 × 樹形図</b> を統合した Web アプリ。</p>
+
+<div class="section">
+<h2>🗺️ 1. 地図表示とナビゲーション</h2>
+<ul>
+  <li>TLSエリア（青枠＋ラベル）</li>
+  <li>20m メッシュ</li>
+  <li>スキャン地点（ScanNo）</li>
+  <li>立木データ（樹種カラー・DBHサイズ）</li>
+  <li>GPS 現在地表示・座標表示</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>🔄 2. TLSエリア自動判定 & データ切替</h2>
+<ul>
+  <li>中心点がどの TLS ポリゴンに入ったか自動判定</li>
+  <li>エリア変更時に scan.csv / trees.csv を自動読み込み</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>🌳 3. 立木データの表示・編集</h2>
+<ul>
+  <li>樹種カラー表示・DBH によるサイズ調整</li>
+  <li>クリックで編集フォーム（DBH/樹高/材積/コメント/間伐）</li>
+  <li>ローカルDB保存 → 後で同期可能</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>📊 4. メッシュ統計（自動更新）</h2>
+<ul>
+  <li>TLS面積・本数・密度（本/ha）</li>
+  <li>樹種構成・平均樹高・平均DBH</li>
+  <li>G（胸高断面積）・V（材積）</li>
+  <li>形状比・相対幹距比・伐採率</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>🌲 5. 樹高プロファイル（三角形図）</h2>
+<ul>
+  <li>樹高＝頂点、DBH＝底辺の三角形表示</li>
+  <li>樹種カラー・南北位置で透明度変化</li>
+  <li>伐採木＝点線、コメントあり＝太枠</li>
+  <li>メッシュ統計と連動して自動描画</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>📷 6. 写真管理</h2>
+<ul>
+  <li>JPEG 複数登録・サムネイル一覧</li>
+  <li>EXIF 位置情報の取得</li>
+  <li>360°写真（Pannellum）対応</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>📡 7. オフライン対応 & 同期</h2>
+<ul>
+  <li>PWA（Service Worker）でオフライン動作</li>
+  <li>ローカル保存 → GitHub などへ同期可能</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>🧩 8. モジュール構造</h2>
+<p>map.js / treeplot.js / treestat.js / drawtree.js / tree-edit.js / tree-db.js / photo.js / sync.js</p>
+</div>
+
+</body>
+</html>
