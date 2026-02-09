@@ -291,11 +291,3 @@ map.on("locationfound", (e) => {
     userMarker.getElement().style.transform = `rotate(${heading}deg)`;
   }
 });
-
-/* ===== マップをクリックしたらサイドバーを閉じる ===== */
-map.on("click", () => {
-  const sidebar = document.getElementById("sidebar");
-  if (sidebar.classList.contains("open")) {
-    sidebar.classList.remove("open");
-  }
-});
