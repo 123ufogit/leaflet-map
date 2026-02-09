@@ -167,7 +167,17 @@ function loadCSV(path = "data/trees.csv") {
           fillOpacity,
           weight: 0.5
         });
-
+        // ★ コメントが "100年木" の場合 → 白枠を追加
+        if (row["コメント"] === "100年木") {
+        const outline = L.circleMarker([lat, lon], {
+         radius: markerRadius + 1,
+         color: "#ffffff",           // 白枠
+         weight: 2,                  // 太さ
+         fillOpacity: 0              // 中は透明
+        });
+        outline.addTo(layerCSV);
+        }
+         
         /* ===== 編集用データ ===== */
         marker.treeData = {
           id: row["立木ID"] || null,
