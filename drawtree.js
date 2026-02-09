@@ -170,3 +170,132 @@ document.addEventListener("meshTreeStatsReady", (e) => {
   const { targetMesh, trees } = e.detail;
   drawTreeHeightScatter(targetMesh, trees);
 });
+
+/* ============================================================
+   Chart.js プラグイン（三角形描画：縦断面）
+   ============================================================ */
+const trianglePluginVertical = {
+  id: "triangleTreesVertical",
+  afterDatasetsDraw(chart, args, options) {
+    const ctx = chart.ctx;
+    const dataset = chart.data.datasets[0];
+    const meta = chart.getDatasetMeta(0);
+
+    const trees = dataset.raw;
+
+    // ▼ 東西方向（lon）の min/max（透明度用）
+    const lons = trees.map(t => t.lon);
+    const lonMin = Math.min(...lons);
+    const lonMax = Math.max(...lons);
+
+    dataset.raw.forEach((t, index) => {
+      const color = getSpeciesColor(t.Species);
+
+      const xScale = chart.scales.x;
+      const yScale = chart.scales.y;
+
+      const xPixel = meta.data[index].x;
+
+      // ▼ 樹高 → Y ピクセル
+      const apexY = yScale.getPixelForValue(t.Height);
+
+      // ▼ DBH → 三角形幅（横断面と同じロジック）
+      const dbh_m = dbhToMeters(t.DBH) / 20;
+      const halfBasePx =
+        (dbh_m / (xScale.max - xScale.min)) * xScale.width / 2;
+
+      const leftX = xPixel - halfBasePx;
+      const rightX = xPixel + halfBasePx;
+      const baseY = yScale.getPixelForValue(0);
+
+      // ▼ 東西方向の正規化（透明度用）
+      const normEW = (t.lon - lonMin) / (lonMax - lonMin);
+
+      // ▼ 透明度（西=濃い、東=薄い）
+      const alpha = 0.6 - 0.4 * normEW;
+
+      ctx.beginPath();
+      ctx.moveTo(xPixel, apexY);
+      ctx.lineTo(leftX, baseY);
+      ctx.lineTo(rightX, baseY);
+      ctx.closePath();
+
+      // ▼ 伐採木 → 塗りつぶしなし、点線
+      if (t.Cut === 1) {
+        ctx.fillStyle = "rgba(0,0,0,0)";
+        ctx.setLineDash([4, 3]);
+      } else {
+        ctx.fillStyle = hexToRgba(color, alpha);
+        ctx.setLineDash([]);
+      }
+      ctx.fill();
+
+      // ▼ コメントあり → 将来木（枠線太く）
+      const isFutureTree = (t.Comment && t.Comment.trim() !== "");
+      ctx.strokeStyle = color;
+      ctx.lineWidth = isFutureTree ? 3 : 1;
+      ctx.stroke();
+    });
+  }
+};
+
+/* ============================================================
+   メッシュ内の立木データから縦断面プロファイルを描画
+   ============================================================ */
+function drawTreeHeightScatterVertical(targetMesh, trees) {
+  if (!targetMesh || trees.length === 0) return;
+
+  // ▼ メッシュの bbox（南端・北端）を取得
+  const bbox = turf.bbox(targetMesh);
+  const south = bbox[1];
+  const north = bbox[3];
+
+  // ▼ 散布図データ作成（南北方向の正規化）
+  const scatterData = trees.map(t => {
+    const normX = (t.lat - north) / (south - north); // 北=0、南=1
+    return { x: normX, y: t.Height };
+  });
+
+  // ▼ attrContent に canvas を追加
+  const infoBox = document.getElementById("attrContent");
+
+  infoBox.innerHTML += `
+    <h3>樹高プロファイル（縦断面：南北）</h3>
+    <canvas id="heightScatterVertical" width="300" height="200"></canvas>
+  `;
+
+  const ctx = document.getElementById("heightScatterVertical");
+
+  // ▼ 既存グラフがあれば破棄
+  if (window.heightChartVertical) {
+    window.heightChartVertical.destroy();
+  }
+
+  // ▼ Chart.js 初期化
+  window.heightChartVertical = new Chart(ctx, {
+    type: "scatter",
+    data: {
+      datasets: [{
+        label: "樹高（縦断面）",
+        data: scatterData,
+        raw: trees,
+        pointRadius: 0,
+        pointHoverRadius: 0
+      }]
+    },
+    options: {
+      scales: {
+        x: {
+          min: 0,
+          max: 1,
+          title: { display: true, text: "正規化 Y (0=北端, 1=南端)" }
+        },
+        y: {
+          min: 0,
+          title: { display: true, text: "樹高 (m)" }
+        }
+      }
+    },
+    plugins: [trianglePluginVertical]
+  });
+}
