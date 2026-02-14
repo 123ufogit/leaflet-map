@@ -133,7 +133,7 @@ function drawTreeHeightScatter(targetMesh, trees) {
 
   infoBox.innerHTML += `
     <h3>樹高プロファイル（三角形）</h3>
-    <canvas id="heightScatter" width="300" height="200"></canvas>
+    <canvas id="heightScatter" width="300" height="150"></canvas>
   `;
 
   const ctx = document.getElementById("heightScatter");
@@ -242,7 +242,7 @@ function drawTreeHeightScatterVertical(targetMesh, trees) {
 
   infoBox.innerHTML += `
     <h3>樹高プロファイル（縦断面：南北）</h3>
-    <canvas id="heightScatterVertical" width="300" height="200"></canvas>
+    <canvas id="heightScatterVertical" width="300" height="150"></canvas>
   `;
 
   const ctx = document.getElementById("heightScatterVertical");
