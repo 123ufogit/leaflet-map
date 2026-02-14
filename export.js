@@ -1,38 +1,46 @@
 /* ============================================================
-   export.js — サイドバー汎用エクスポート機能
+   export.js — サイドバー汎用エクスポート機能（最新版）
    ============================================================ */
 
-/* --- テキスト出力 --- */
+/* --- テキストをクリップボードにコピー --- */
 function exportSidebarAsText() {
   const content = document.getElementById("attrContent").innerText;
 
-  const blob = new Blob([content], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "sidebar.txt";
-  a.click();
-
-  URL.revokeObjectURL(url);
+  navigator.clipboard.writeText(content)
+    .then(() => {
+      console.log("サイドバー内容をコピーしました");
+    })
+    .catch(err => {
+      console.error("コピーに失敗:", err);
+    });
 }
 
-/* --- 画像出力 --- */
-function exportSidebarAsImage() {
-  const target = document.getElementById("attrContent");
+/* --- 樹高プロファイルだけ PNG 保存 --- */
+function exportTreeProfileAsImage() {
+  // 横断面
+  let canvas = document.getElementById("heightScatter");
 
-  html2canvas(target).then(canvas => {
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = "sidebar.png";
-    link.click();
-  });
+  // なければ縦断面
+  if (!canvas) {
+    canvas = document.getElementById("heightScatterVertical");
+  }
+
+  if (!canvas) {
+    alert("樹高プロファイルがありません。");
+    return;
+  }
+
+  const link = document.createElement("a");
+  link.href = canvas.toDataURL("image/png");
+  link.download = "tree_profile.png";
+  link.click();
 }
 
 /* --- ボタン自動挿入 --- */
 function injectExportButtons() {
   const box = document.getElementById("attrContent");
 
+  // 既存のボタンを削除
   const old = document.getElementById("exportButtons");
   if (old) old.remove();
 
@@ -41,14 +49,14 @@ function injectExportButtons() {
   div.style.marginTop = "14px";
 
   div.innerHTML = `
-    <button class="export-btn" onclick="exportSidebarAsText()">テキスト出力</button>
-    <button class="export-btn" onclick="exportSidebarAsImage()">画像出力</button>
+    <button class="export-btn" onclick="exportSidebarAsText()">テキストをコピー</button>
+    <button class="export-btn" onclick="exportTreeProfileAsImage()">樹高プロファイルを画像保存</button>
   `;
 
   box.appendChild(div);
 }
 
-/* --- CSS --- */
+/* --- CSS（ボタンの見た目） --- */
 const style = document.createElement("style");
 style.textContent = `
   #exportButtons .export-btn {
