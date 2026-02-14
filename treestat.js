@@ -222,3 +222,4 @@ map.on("moveend", () => {
     detail: { targetMesh, trees }
   }));
 });
+injectExportButtons();
