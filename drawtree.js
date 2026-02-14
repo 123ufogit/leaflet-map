@@ -299,3 +299,4 @@ function drawTreeHeightScatterVertical(targetMesh, trees) {
     plugins: [trianglePluginVertical]
   });
 }
+injectExportButtons();
