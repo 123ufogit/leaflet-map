@@ -216,10 +216,10 @@ map.on("moveend", () => {
     相対幹距比：${RBR.toFixed(1)} %<br>
     ${cutInfo}
   `;
+injectExportButtons();
 
   // ★ drawtree.js へ安全な数値データを送る
   document.dispatchEvent(new CustomEvent("meshTreeStatsReady", {
     detail: { targetMesh, trees }
   }));
 });
-injectExportButtons();
