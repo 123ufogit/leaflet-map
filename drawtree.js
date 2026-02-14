@@ -93,8 +93,7 @@ const trianglePlugin = {
       ctx.fill();
 
       // ▼ コメントあり → 将来木（枠線太く）
-      const isFutureTree = (t.Comment && t.Comment.trim() !== "");
-
+      const isFutureTree = (t.Comment === "将来木" || t.Comment === "100年木");
       ctx.strokeStyle = color;
       ctx.lineWidth = isFutureTree ? 3 : 1;
       ctx.stroke();
@@ -231,7 +230,7 @@ const trianglePluginVertical = {
       ctx.fill();
 
       // ▼ コメントあり → 将来木（枠線太く）
-      const isFutureTree = (t.Comment && t.Comment.trim() !== "");
+      const isFutureTree = (t.Comment === "将来木" || t.Comment === "100年木");
       ctx.strokeStyle = color;
       ctx.lineWidth = isFutureTree ? 3 : 1;
       ctx.stroke();
