@@ -1,11 +1,5 @@
 /* ============================================================
-   drawtree.js — 樹高プロファイル（三角形）描画モジュール（修正版）
-   方針：
-   - 将来木判定なし
-   - コメントは表示のみ
-   - 透明度計算は現行維持
-   - DBH→px 変換も現行維持
-   - ID＋コメント表示（衝突回避）
+   drawtree.js — 樹高プロファイル（三角形）描画モジュール（最新版）
    ============================================================ */
 
 // グラフインスタンス
@@ -41,19 +35,6 @@ function hexToRgba(hex, alpha) {
 }
 
 /* ============================================================
-   ラベル衝突回避
-   ============================================================ */
-function adjustLabelY(y, used) {
-  for (let prev of used) {
-    if (Math.abs(prev - y) < 12) {
-      y -= 12;
-    }
-  }
-  used.push(y);
-  return y;
-}
-
-/* ============================================================
    Chart.js プラグイン（三角形：東西）
    ============================================================ */
 const trianglePlugin = {
@@ -86,8 +67,14 @@ const trianglePlugin = {
       const rightX = xPixel + halfBasePx;
       const baseY = yScale.getPixelForValue(0);
 
-      const normY = (t.lat - latMin) / (latMax - latMin);
-      const alpha = 0.6 - 0.4 * normY;
+      // 透明度（latMax=latMin の場合は固定値）
+      let alpha;
+      if (latMax === latMin) {
+        alpha = 0.6;
+      } else {
+        const normY = (t.lat - latMin) / (latMax - latMin);
+        alpha = 0.6 - 0.4 * normY;
+      }
 
       ctx.beginPath();
       ctx.moveTo(xPixel, apexY);
@@ -108,22 +95,32 @@ const trianglePlugin = {
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      /* ===== ID + コメント表示（衝突回避） ===== */
-      let labelY = adjustLabelY(apexY - 6, usedLabelPositions);
+      /* ===== コメント1文字ラベル（頂点の真上・上下のみ衝突回避） ===== */
+      const label = (t.Comment || "").trim();
+      if (label.length > 0) {
+        const firstChar = label[0];
 
-      ctx.fillStyle = "#000000";
-      ctx.font = "10px sans-serif";
-      ctx.fillText(`ID:${t.id}`, xPixel + 4, labelY);
+        let labelY = apexY - 6;
+        for (let prev of usedLabelPositions) {
+          if (Math.abs(prev - labelY) < 12) {
+            labelY -= 12;
+          }
+        }
+        usedLabelPositions.push(labelY);
 
-      if (t.Comment) {
-        ctx.fillText(t.Comment, xPixel + 4, labelY + 12);
+        ctx.fillStyle = "#000000";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+
+        ctx.fillText(firstChar, xPixel, labelY);
       }
     });
   }
 };
 
 /* ============================================================
-   東西プロファイル描画（タイトルなし）
+   東西プロファイル描画
    ============================================================ */
 function drawTreeHeightScatter(targetMesh, trees) {
   if (!targetMesh || trees.length === 0) return;
@@ -214,8 +211,14 @@ const trianglePluginVertical = {
       const rightX = xPixel + halfBasePx;
       const baseY = yScale.getPixelForValue(0);
 
-      const normEW = (t.lon - lonMin) / (lonMax - lonMin);
-      const alpha = 0.6 - 0.4 * normEW;
+      // 透明度（lonMax=lonMin の場合は固定値）
+      let alpha;
+      if (lonMax === lonMin) {
+        alpha = 0.6;
+      } else {
+        const normEW = (t.lon - lonMin) / (lonMax - lonMin);
+        alpha = 0.6 - 0.4 * normEW;
+      }
 
       ctx.beginPath();
       ctx.moveTo(xPixel, apexY);
@@ -236,22 +239,32 @@ const trianglePluginVertical = {
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      /* ===== ID + コメント表示（衝突回避） ===== */
-      let labelY = adjustLabelY(apexY - 6, usedLabelPositions);
+      /* ===== コメント1文字ラベル（頂点の真上・上下のみ衝突回避） ===== */
+      const label = (t.Comment || "").trim();
+      if (label.length > 0) {
+        const firstChar = label[0];
 
-      ctx.fillStyle = "#000000";
-      ctx.font = "10px sans-serif";
-      ctx.fillText(`ID:${t.id}`, xPixel + 4, labelY);
+        let labelY = apexY - 6;
+        for (let prev of usedLabelPositions) {
+          if (Math.abs(prev - labelY) < 12) {
+            labelY -= 12;
+          }
+        }
+        usedLabelPositions.push(labelY);
 
-      if (t.Comment) {
-        ctx.fillText(t.Comment, xPixel + 4, labelY + 12);
+        ctx.fillStyle = "#000000";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+
+        ctx.fillText(firstChar, xPixel, labelY);
       }
     });
   }
 };
 
 /* ============================================================
-   南北プロファイル描画（タイトルなし）
+   南北プロファイル描画
    ============================================================ */
 function drawTreeHeightScatterVertical(targetMesh, trees) {
   if (!targetMesh || trees.length === 0) return;
