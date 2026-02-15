@@ -70,12 +70,16 @@ map.on("moveend", () => {
   }
 
   /* ============================================================
-     ② メッシュ内の立木を抽出（★ここで安全な数値変換）
+     ② メッシュ内の立木を抽出（★白枠マーカー除外）
      ============================================================ */
 
   const trees = [];
 
   layerCSV.eachLayer(marker => {
+
+    // ★ 100年木の白枠マーカー（treeDataなし）を除外
+    if (!marker.treeData) return;
+
     const latlng = marker.getLatLng();
     const p = turf.point([latlng.lng, latlng.lat]);
 
@@ -216,7 +220,7 @@ map.on("moveend", () => {
     相対幹距比：${RBR.toFixed(1)} %<br>
     ${cutInfo}
   `;
-injectExportButtons();
+  injectExportButtons();
 
   // ★ drawtree.js へ安全な数値データを送る
   document.dispatchEvent(new CustomEvent("meshTreeStatsReady", {
