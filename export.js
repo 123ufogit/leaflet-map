@@ -15,24 +15,19 @@ function exportSidebarAsText() {
     });
 }
 
-/* --- 樹高プロファイルだけ PNG 保存 --- */
-function exportTreeProfileAsImage() {
-  // 横断面
-  let canvas = document.getElementById("heightScatter");
+/* --- 東西＋南北プロファイルを合成 PNG 保存 --- */
+function exportCombinedTreeProfile() {
+  // drawtree.js 内の合成関数を呼び出す
+  const combo = combineProfilesToOneImage();
 
-  // なければ縦断面
-  if (!canvas) {
-    canvas = document.getElementById("heightScatterVertical");
-  }
-
-  if (!canvas) {
+  if (!combo) {
     alert("樹高プロファイルがありません。");
     return;
   }
 
   const link = document.createElement("a");
-  link.href = canvas.toDataURL("image/png");
-  link.download = "tree_profile.png";
+  link.href = combo.toDataURL("image/png");
+  link.download = "tree_profile_combined.png";
   link.click();
 }
 
@@ -50,7 +45,7 @@ function injectExportButtons() {
 
   div.innerHTML = `
     <button class="export-btn" onclick="exportSidebarAsText()">テキストをコピー</button>
-    <button class="export-btn" onclick="exportTreeProfileAsImage()">樹高プロファイルを画像保存</button>
+    <button class="export-btn" onclick="exportCombinedTreeProfile()">樹高プロファイル画像（合成）を保存</button>
   `;
 
   box.appendChild(div);
