@@ -70,7 +70,7 @@ map.on("moveend", () => {
   }
 
   /* ============================================================
-     ② メッシュ内の立木を抽出
+     ② メッシュ内の立木を抽出（★ここで安全な数値変換）
      ============================================================ */
 
   const trees = [];
@@ -80,7 +80,24 @@ map.on("moveend", () => {
     const p = turf.point([latlng.lng, latlng.lat]);
 
     if (turf.booleanPointInPolygon(p, targetMesh)) {
-      trees.push(marker.treeData);
+
+      const td = marker.treeData;
+
+      // ★ 数値変換を徹底（NaN も防ぐ）
+      const safeTree = {
+        id: td.id,
+        Species: td.Species,
+        Comment: td.Comment || "",
+        DBH: Number(td.DBH) || 0,
+        Height: Number(td.Height) || 0,
+        Volume: Number(td.Volume) || 0,
+        Cut: Number(td.Cut) || 0,
+        lon: Number(td.lon) || 0,
+        lat: Number(td.lat) || 0,
+        area: td.area || null
+      };
+
+      trees.push(safeTree);
     }
   });
 
@@ -93,7 +110,7 @@ map.on("moveend", () => {
     return;
   }
 
-  /* ===== 統計計算 ===== */
+  /* ===== 統計計算（すべて数値なので安全） ===== */
 
   const count = trees.length;
 
@@ -116,19 +133,19 @@ map.on("moveend", () => {
   // 平均 DBH
   const avgDBH = trees.reduce((s, t) => s + t.DBH, 0) / count;
 
-  // 胸高断面積合計（合計値）
+  // 胸高断面積合計
   const Gsum = trees.reduce((s, t) => {
     const r = t.DBH / 200;
     return s + Math.PI * r * r;
   }, 0);
 
-  // ★ 1ha換算
+  // 1ha換算
   const Gha = (Gsum / tlsArea) * 10000;
 
-  // 材積合計（合計値）
+  // 材積合計
   const Vsum = trees.reduce((s, t) => s + t.Volume, 0);
 
-  // ★ 1ha換算
+  // 1ha換算
   const Vha = (Vsum / tlsArea) * 10000;
 
   // 形状比
@@ -199,7 +216,10 @@ map.on("moveend", () => {
     相対幹距比：${RBR.toFixed(1)} %<br>
     ${cutInfo}
   `;
-   document.dispatchEvent(new CustomEvent("meshTreeStatsReady", {
-  detail: { targetMesh, trees }
-}));
+injectExportButtons();
+
+  // ★ drawtree.js へ安全な数値データを送る
+  document.dispatchEvent(new CustomEvent("meshTreeStatsReady", {
+    detail: { targetMesh, trees }
+  }));
 });
