@@ -1,5 +1,11 @@
 /* ============================================================
-   drawtree.js — 樹高プロファイル（三角形）描画モジュール（完全安定版）
+   drawtree.js — 樹高プロファイル（三角形）描画モジュール（修正版）
+   方針：
+   - 将来木判定なし
+   - コメントは表示のみ
+   - 透明度計算は現行維持
+   - DBH→px 変換も現行維持
+   - ID＋コメント表示（衝突回避）
    ============================================================ */
 
 // グラフインスタンス
@@ -35,16 +41,16 @@ function hexToRgba(hex, alpha) {
 }
 
 /* ============================================================
-   コメント正規化 → 将来木判定
+   ラベル衝突回避
    ============================================================ */
-function isFutureTreeByComment(commentRaw) {
-  const comment = String(commentRaw || "").trim();
-
-  const normalized = comment.replace(/[０-９]/g, s =>
-    String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
-  );
-
-  return normalized === "将来木" || normalized === "100年木";
+function adjustLabelY(y, used) {
+  for (let prev of used) {
+    if (Math.abs(prev - y) < 12) {
+      y -= 12;
+    }
+  }
+  used.push(y);
+  return y;
 }
 
 /* ============================================================
@@ -61,6 +67,8 @@ const trianglePlugin = {
     const lats = trees.map(t => t.lat);
     const latMin = Math.min(...lats);
     const latMax = Math.max(...lats);
+
+    let usedLabelPositions = [];
 
     trees.forEach((t, index) => {
       const color = getSpeciesColor(t.Species);
@@ -96,11 +104,20 @@ const trianglePlugin = {
       }
       ctx.fill();
 
-      const future = isFutureTreeByComment(t.Comment);
-
       ctx.strokeStyle = color;
-      ctx.lineWidth = future ? 3 : 1;
+      ctx.lineWidth = 1;
       ctx.stroke();
+
+      /* ===== ID + コメント表示（衝突回避） ===== */
+      let labelY = adjustLabelY(apexY - 6, usedLabelPositions);
+
+      ctx.fillStyle = "#000000";
+      ctx.font = "10px sans-serif";
+      ctx.fillText(`ID:${t.id}`, xPixel + 4, labelY);
+
+      if (t.Comment) {
+        ctx.fillText(t.Comment, xPixel + 4, labelY + 12);
+      }
     });
   }
 };
@@ -179,6 +196,8 @@ const trianglePluginVertical = {
     const lonMin = Math.min(...lons);
     const lonMax = Math.max(...lons);
 
+    let usedLabelPositions = [];
+
     trees.forEach((t, index) => {
       const color = getSpeciesColor(t.Species);
       const xScale = chart.scales.x;
@@ -213,11 +232,20 @@ const trianglePluginVertical = {
       }
       ctx.fill();
 
-      const future = isFutureTreeByComment(t.Comment);
-
       ctx.strokeStyle = color;
-      ctx.lineWidth = future ? 3 : 1;
+      ctx.lineWidth = 1;
       ctx.stroke();
+
+      /* ===== ID + コメント表示（衝突回避） ===== */
+      let labelY = adjustLabelY(apexY - 6, usedLabelPositions);
+
+      ctx.fillStyle = "#000000";
+      ctx.font = "10px sans-serif";
+      ctx.fillText(`ID:${t.id}`, xPixel + 4, labelY);
+
+      if (t.Comment) {
+        ctx.fillText(t.Comment, xPixel + 4, labelY + 12);
+      }
     });
   }
 };
@@ -282,7 +310,7 @@ function drawTreeHeightScatterVertical(targetMesh, trees) {
 }
 
 /* ============================================================
-   東西＋南北を 1 枚に合成（タイトル2つ付き）
+   PNG 合成（現行のまま）
    ============================================================ */
 function combineProfilesToOneImage() {
   const ew = document.getElementById("heightScatter");
@@ -295,32 +323,25 @@ function combineProfilesToOneImage() {
 
   const combo = document.createElement("canvas");
   combo.width = w;
-  combo.height = h * 2 + 80; // タイトル2つ分の余白
+  combo.height = h * 2 + 80;
   const ctx = combo.getContext("2d");
 
-  // 背景白
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, combo.width, combo.height);
 
-  // タイトル（東西）
   ctx.fillStyle = "#000000";
   ctx.font = "16px sans-serif";
   ctx.fillText("樹高プロファイル（東西）", 10, 20);
-
-  // 東西画像
   ctx.drawImage(ew, 0, 30);
 
-  // タイトル（南北）
   ctx.fillText("樹高プロファイル（南北）", 10, h + 50);
-
-  // 南北画像
   ctx.drawImage(ns, 0, h + 60);
 
   return combo;
 }
 
 /* ============================================================
-   treestat.js → drawtree.js へのイベント受信
+   treestat.js → drawtree.js
    ============================================================ */
 document.addEventListener("meshTreeStatsReady", (e) => {
   const { targetMesh, trees } = e.detail;
