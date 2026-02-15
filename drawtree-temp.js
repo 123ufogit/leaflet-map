@@ -1,8 +1,8 @@
 /* ============================================================
-   drawtree.js — 樹高プロファイル（三角形）描画モジュール（最新版）
+   drawtree.js — 樹高プロファイル（三角形）描画モジュール（完全安定版）
    ============================================================ */
 
-// グラフインスタンス（再描画時に破棄するため）
+// グラフインスタンス
 let heightChart = null;
 let heightChartVertical = null;
 
@@ -35,23 +35,20 @@ function hexToRgba(hex, alpha) {
 }
 
 /* ============================================================
-   コメント正規化 → 将来木判定（共通）
+   コメント正規化 → 将来木判定
    ============================================================ */
 function isFutureTreeByComment(commentRaw) {
-  // null / undefined / 空欄を安全に文字列化
   const comment = String(commentRaw || "").trim();
 
-  // 全角数字 → 半角数字
   const normalized = comment.replace(/[０-９]/g, s =>
     String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
   );
 
-  // 将来木判定
   return normalized === "将来木" || normalized === "100年木";
 }
 
 /* ============================================================
-   Chart.js プラグイン（三角形：横断面）
+   Chart.js プラグイン（三角形：東西）
    ============================================================ */
 const trianglePlugin = {
   id: "triangleTrees",
@@ -90,7 +87,6 @@ const trianglePlugin = {
       ctx.lineTo(rightX, baseY);
       ctx.closePath();
 
-      // 伐採木 → 塗りつぶしなし・点線
       if (t.Cut === 1) {
         ctx.fillStyle = "rgba(0,0,0,0)";
         ctx.setLineDash([4, 3]);
@@ -100,7 +96,6 @@ const trianglePlugin = {
       }
       ctx.fill();
 
-      // 将来木判定
       const future = isFutureTreeByComment(t.Comment);
 
       ctx.strokeStyle = color;
@@ -111,14 +106,21 @@ const trianglePlugin = {
 };
 
 /* ============================================================
-   横断面プロファイル描画
+   東西プロファイル描画（タイトルなし）
    ============================================================ */
 function drawTreeHeightScatter(targetMesh, trees) {
   if (!targetMesh || trees.length === 0) return;
 
-  // 古い canvas を削除
+  const infoBox = document.getElementById("attrContent");
+
   const oldCanvas = document.getElementById("heightScatter");
   if (oldCanvas) oldCanvas.remove();
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "heightScatter";
+  canvas.width = 300;
+  canvas.height = 133;
+  infoBox.appendChild(canvas);
 
   const bbox = turf.bbox(targetMesh);
   const west = bbox[0];
@@ -129,22 +131,13 @@ function drawTreeHeightScatter(targetMesh, trees) {
     y: t.Height
   }));
 
-  const infoBox = document.getElementById("attrContent");
-
-  infoBox.innerHTML += `
-    <h3>樹高プロファイル（三角形）</h3>
-    <canvas id="heightScatter" width="300" height="150"></canvas>
-  `;
-
-  const ctx = document.getElementById("heightScatter");
-
   if (heightChart) heightChart.destroy();
 
-  heightChart = new Chart(ctx, {
+  heightChart = new Chart(canvas, {
     type: "scatter",
     data: {
       datasets: [{
-        label: "樹高",
+        label: "樹高プロファイル（東西）",
         data: scatterData,
         raw: trees,
         pointRadius: 0,
@@ -153,7 +146,17 @@ function drawTreeHeightScatter(targetMesh, trees) {
     },
     options: {
       scales: {
-        x: { min: 0, max: 1 },
+        x: {
+          min: 0,
+          max: 1,
+          ticks: {
+            callback: function(value) {
+              if (value === 0) return "0 (西)";
+              if (value === 1) return "1 (東)";
+              return value;
+            }
+          }
+        },
         y: { min: 0 }
       }
     },
@@ -162,7 +165,7 @@ function drawTreeHeightScatter(targetMesh, trees) {
 }
 
 /* ============================================================
-   縦断面（三角形）プラグイン
+   Chart.js プラグイン（三角形：南北）
    ============================================================ */
 const trianglePluginVertical = {
   id: "triangleTreesVertical",
@@ -210,7 +213,6 @@ const trianglePluginVertical = {
       }
       ctx.fill();
 
-      // 将来木判定
       const future = isFutureTreeByComment(t.Comment);
 
       ctx.strokeStyle = color;
@@ -221,39 +223,38 @@ const trianglePluginVertical = {
 };
 
 /* ============================================================
-   縦断面プロファイル描画（南北方向の式を修正済み）
+   南北プロファイル描画（タイトルなし）
    ============================================================ */
 function drawTreeHeightScatterVertical(targetMesh, trees) {
   if (!targetMesh || trees.length === 0) return;
 
+  const infoBox = document.getElementById("attrContent");
+
   const oldCanvas = document.getElementById("heightScatterVertical");
   if (oldCanvas) oldCanvas.remove();
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "heightScatterVertical";
+  canvas.width = 300;
+  canvas.height = 133;
+  infoBox.appendChild(canvas);
 
   const bbox = turf.bbox(targetMesh);
   const south = bbox[1];
   const north = bbox[3];
 
   const scatterData = trees.map(t => ({
-    x: (t.lat - south) / (north - south),  // ← 修正済み（正しい南北正規化）
+    x: (t.lat - south) / (north - south),
     y: t.Height
   }));
 
-  const infoBox = document.getElementById("attrContent");
-
-  infoBox.innerHTML += `
-    <h3>樹高プロファイル（縦断面：南北）</h3>
-    <canvas id="heightScatterVertical" width="300" height="150"></canvas>
-  `;
-
-  const ctx = document.getElementById("heightScatterVertical");
-
   if (heightChartVertical) heightChartVertical.destroy();
 
-  heightChartVertical = new Chart(ctx, {
+  heightChartVertical = new Chart(canvas, {
     type: "scatter",
     data: {
       datasets: [{
-        label: "樹高（縦断面）",
+        label: "樹高プロファイル（南北）",
         data: scatterData,
         raw: trees,
         pointRadius: 0,
@@ -262,12 +263,60 @@ function drawTreeHeightScatterVertical(targetMesh, trees) {
     },
     options: {
       scales: {
-        x: { min: 0, max: 1 },
+        x: {
+          min: 0,
+          max: 1,
+          ticks: {
+            callback: function(value) {
+              if (value === 0) return "0 (南)";
+              if (value === 1) return "1 (北)";
+              return value;
+            }
+          }
+        },
         y: { min: 0 }
       }
     },
     plugins: [trianglePluginVertical]
   });
+}
+
+/* ============================================================
+   東西＋南北を 1 枚に合成（タイトル2つ付き）
+   ============================================================ */
+function combineProfilesToOneImage() {
+  const ew = document.getElementById("heightScatter");
+  const ns = document.getElementById("heightScatterVertical");
+
+  if (!ew || !ns) return null;
+
+  const w = ew.width;
+  const h = ew.height;
+
+  const combo = document.createElement("canvas");
+  combo.width = w;
+  combo.height = h * 2 + 80; // タイトル2つ分の余白
+  const ctx = combo.getContext("2d");
+
+  // 背景白
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, combo.width, combo.height);
+
+  // タイトル（東西）
+  ctx.fillStyle = "#000000";
+  ctx.font = "16px sans-serif";
+  ctx.fillText("樹高プロファイル（東西）", 10, 20);
+
+  // 東西画像
+  ctx.drawImage(ew, 0, 30);
+
+  // タイトル（南北）
+  ctx.fillText("樹高プロファイル（南北）", 10, h + 50);
+
+  // 南北画像
+  ctx.drawImage(ns, 0, h + 60);
+
+  return combo;
 }
 
 /* ============================================================
