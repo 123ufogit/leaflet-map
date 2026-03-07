@@ -44,7 +44,7 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
 const layerDCHMTRGB = L.tileLayer(
   "https://forestgeo.info/opendata/17_ishikawa/noto/dchm_terrainRGB_2024/{z}/{x}/{y}.png",
   {
-    attribution: "林野庁・DCHM（Terrain-RGB）",
+    attribution: "林野庁・DCHM（T-RGB）",
     maxZoom: 30,
     maxNativeZoom: 18,
     opacity: 0.5
@@ -61,10 +61,10 @@ const layerDCHMPNG = L.tileLayer(
   }
 );
 
-const layerhenka = L.tileLayer(
-  "https://www.geospatial.jp/ckan/dataset/rinya-henka-noto2024",
+const layerhenkaTRGB = L.tileLayer(
+  "https://forestgeo.info/opendata/17_ishikawa/noto/henka_terrainRGB_2024/{z}/{x}/{y}.png",
   {
-    attribution: "林野庁・地形変化量データ",
+    attribution: "林野庁・地形変化量データ(T-RGB)",
     maxZoom: 30,
     maxNativeZoom: 18,
     opacity: 0.5
@@ -110,7 +110,7 @@ L.control.layers(
     "DCHM T-RGB": layerDCHMTRGB,
     "DCHM PNG": layerDCHMPNG,
     "DCHM 樹高グレースケール": layerDCHMGray,
-    "地形変化量": layerhenka,
+    "地形変化量 T-RGB": layerhenka,
     "樹種ポリゴン": layerTREESP,
     "簡易オルソ": layerORTHO2024
   },
