@@ -110,7 +110,7 @@ L.control.layers(
     "DCHM T-RGB": layerDCHMTRGB,
     "DCHM PNG": layerDCHMPNG,
     "DCHM 樹高グレースケール": layerDCHMGray,
-    "地形変化量 T-RGB": layerhenka,
+    "地形変化量 T-RGB": layerhenkaTRGB,
     "樹種ポリゴン": layerTREESP,
     "簡易オルソ": layerORTHO2024
   },
