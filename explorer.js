@@ -384,7 +384,6 @@ function makeCollapsibleLegend(title, contentHtml) {
 
 /* ============================================================
    全国森林資源メッシュ（20m）ベクトルタイル
-   属性は無視し、ポリゴン枠線のみ灰色で表示
    ============================================================ */
 
 const mesh20mStyle = {
@@ -393,7 +392,7 @@ const mesh20mStyle = {
     return {
       stroke: true,
       color: "#888888",   // ★ 細い灰色の線
-      weight: 0.5,        // ★ 線の太さ
+      weight: 0.2,        // ★ 線の太さ
       fill: false         // ★ 塗りつぶしなし
     };
   }
