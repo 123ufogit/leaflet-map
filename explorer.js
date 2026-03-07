@@ -141,7 +141,7 @@ function convertStyleJsonToVectorGridStyles(styleJson) {
       styles[id] = {
         stroke: true,
         color: layer.paint["line-color"] ?? "#000",
-        weight: layer.paint["line-width"] ?? 1,
+        weight: layer.paint["line-width"] ?? 0.1,
         opacity: layer.paint["line-opacity"] ?? 0.8
       };
     }
@@ -161,7 +161,6 @@ function convertStyleJsonToVectorGridStyles(styleJson) {
 
   return styles;
 }
-
 
 /* ============================================================
    判読図 凡例
@@ -234,7 +233,6 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
     createHandokuLegend(styleJson);
   });
 
-
 /* ============================================================
    樹種ポリゴン：style.json → 樹種別カラー辞書
    ============================================================ */
@@ -258,7 +256,6 @@ function buildTreeSpeciesStyleMap(styleJson) {
 
   return mapSpecies;
 }
-
 
 /* ============================================================
    樹種ポリゴン：VectorGrid スタイル関数
@@ -286,7 +283,6 @@ function createTreeSpeciesVectorStyle(styleMap) {
     };
   };
 }
-
 
 /* ============================================================
    樹種ポリゴン 凡例
@@ -317,7 +313,6 @@ function createTreeSpeciesLegend(styleMap) {
 
   treeLegendControl.addTo(map);
 }
-
 
 /* ============================================================
    樹種2024（PBF + style.json）
@@ -385,14 +380,12 @@ function makeCollapsibleLegend(title, contentHtml) {
 /* ============================================================
    全国森林資源メッシュ（20m）ベクトルタイル
    ============================================================ */
-
 const mesh20mStyle = {
-  // PBF 内のレイヤ名は "fr_mesh20m"（仕様より）
-  "fr_mesh20m": function () {
+     "fr_mesh20m": function () {
     return {
       stroke: true,
       color: "#888888",   // ★ 細い灰色の線
-      weight: 0.2,        // ★ 線の太さ
+      weight: 0.1,        // ★ 線の太さ
       fill: false         // ★ 塗りつぶしなし
     };
   }
@@ -409,5 +402,4 @@ const layerMesh20m = L.vectorGrid.protobuf(
   }
 );
 
-// レイヤコントロールに追加
 layerControl.addOverlay(layerMesh20m, "森林資源メッシュ20m（枠線のみ）");
