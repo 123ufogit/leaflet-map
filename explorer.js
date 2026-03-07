@@ -44,7 +44,7 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
 
 
 /* ============================================================
-   タイルレイヤー
+   ラスターレイヤー
    ============================================================ */
 const layerDCHMTRGB = L.tileLayer(
   "https://forestgeo.info/opendata/17_ishikawa/noto/dchm_terrainRGB_2024/{z}/{x}/{y}.png",
@@ -86,8 +86,9 @@ const layerDCHMGray = new L.TileLayer.TerrainGray(
   }
 );
 
+
 /* ============================================================
-   レイヤコントロール
+   レイヤコントロール（VectorGrid は後で追加）
    ============================================================ */
 const layerControl = L.control.layers(
   null,
@@ -95,15 +96,14 @@ const layerControl = L.control.layers(
     "DCHM T-RGB": layerDCHMTRGB,
     "DCHM PNG": layerDCHMPNG,
     "DCHM 樹高グレースケール": layerDCHMGray,
-    "地形変化量 T-RGB": layerhenkaTRGB,
-    "樹種ポリゴン": layerTREESP2024
+    "地形変化量 T-RGB": layerhenkaTRGB
   },
   { position: "bottomleft" }
 ).addTo(map);
 
 
 /* ============================================================
-   共通：style.json → VectorGrid スタイル変換（判読図など）
+   共通：style.json → VectorGrid スタイル変換（判読図）
    ============================================================ */
 function convertStyleJsonToVectorGridStyles(styleJson) {
   const styles = {};
@@ -207,7 +207,7 @@ function createHandokuLegend(styleJson) {
 
 
 /* ============================================================
-   判読図（PBF + style.json）ベクタタイル
+   判読図（PBF + style.json）
    ============================================================ */
 fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json")
   .then(res => res.json())
@@ -241,7 +241,6 @@ function buildTreeSpeciesStyleMap(styleJson) {
     if (layer.type !== "fill") return;
     if (!layer.filter) return;
 
-    // 例: ["==", "解析樹種", "スギ"]
     const field = layer.filter[1];
     const value = layer.filter[2];
 
@@ -321,7 +320,7 @@ function createTreeSpeciesLegend(styleMap) {
 
 
 /* ============================================================
-   樹種2024（PBF + style.json）ベクタタイル
+   樹種2024（PBF + style.json）
    ============================================================ */
 fetch("https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/style.json")
   .then(res => res.json())
