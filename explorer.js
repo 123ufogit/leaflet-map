@@ -86,17 +86,6 @@ const layerDCHMGray = new L.TileLayer.TerrainGray(
   }
 );
 
-const layerTREESP = L.tileLayer(
-  "https://www.geospatial.jp/ckan/dataset/rinya-treespecies-noto2024",
-  {
-    attribution: "林野庁・樹種ポリゴン",
-    maxZoom: 30,
-    maxNativeZoom: 18,
-    opacity: 0.8
-  }
-);
-
-
 /* ============================================================
    レイヤコントロール
    ============================================================ */
@@ -107,14 +96,14 @@ const layerControl = L.control.layers(
     "DCHM PNG": layerDCHMPNG,
     "DCHM 樹高グレースケール": layerDCHMGray,
     "地形変化量 T-RGB": layerhenkaTRGB,
-    "樹種ポリゴン": layerTREESP
+    "樹種ポリゴン": layerTREESP2024
   },
   { position: "bottomleft" }
 ).addTo(map);
 
 
 /* ============================================================
-   style.json → VectorGrid スタイル変換関数
+   共通：style.json → VectorGrid スタイル変換（判読図など）
    ============================================================ */
 function convertStyleJsonToVectorGridStyles(styleJson) {
   const styles = {};
@@ -159,14 +148,14 @@ function convertStyleJsonToVectorGridStyles(styleJson) {
 
 
 /* ============================================================
-   凡例（レジェンド）生成
+   判読図 凡例
    ============================================================ */
-function createLegend(styleJson) {
+function createHandokuLegend(styleJson) {
   const legend = L.control({ position: "bottomright" });
 
   legend.onAdd = function () {
     const div = L.DomUtil.create("div", "legend");
-    div.innerHTML = "<strong>凡例</strong><br>";
+    div.innerHTML = "<strong>判読図 凡例</strong><br>";
 
     styleJson.layers.forEach(layer => {
       const name = layer.id;
@@ -218,12 +207,11 @@ function createLegend(styleJson) {
 
 
 /* ============================================================
-   判読図（PBF + style.json）
+   判読図（PBF + style.json）ベクタタイル
    ============================================================ */
 fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json")
   .then(res => res.json())
   .then(styleJson => {
-
     const vectorStyles = convertStyleJsonToVectorGridStyles(styleJson);
 
     const layerHANDOKU = L.vectorGrid.protobuf(
@@ -239,29 +227,121 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
 
     layerControl.addOverlay(layerHANDOKU, "判読図（ベクタタイル）");
 
-    createLegend(styleJson);
+    createHandokuLegend(styleJson);
   });
 
 
 /* ============================================================
-   樹種2024（PBF + style.json）
+   樹種ポリゴン：style.json → 樹種別カラー辞書
+   ============================================================ */
+function buildTreeSpeciesStyleMap(styleJson) {
+  const mapSpecies = {};
+
+  styleJson.layers.forEach(layer => {
+    if (layer.type !== "fill") return;
+    if (!layer.filter) return;
+
+    // 例: ["==", "解析樹種", "スギ"]
+    const field = layer.filter[1];
+    const value = layer.filter[2];
+
+    mapSpecies[value] = {
+      field: field,
+      color: layer.paint["fill-color"],
+      opacity: layer.paint["fill-opacity"],
+      label: layer.id
+    };
+  });
+
+  return mapSpecies;
+}
+
+
+/* ============================================================
+   樹種ポリゴン：VectorGrid スタイル関数
+   ============================================================ */
+function createTreeSpeciesVectorStyle(styleMap) {
+  return function (properties, zoom) {
+    const species =
+      properties["解析樹種"] ||
+      properties["樹種"];
+
+    if (species && styleMap[species]) {
+      return {
+        fill: true,
+        fillColor: styleMap[species].color,
+        fillOpacity: styleMap[species].opacity,
+        stroke: false
+      };
+    }
+
+    return {
+      fill: true,
+      fillColor: "#cccccc",
+      fillOpacity: 0.5,
+      stroke: false
+    };
+  };
+}
+
+
+/* ============================================================
+   樹種ポリゴン 凡例
+   ============================================================ */
+function createTreeSpeciesLegend(styleMap) {
+  const legend = L.control({ position: "bottomright" });
+
+  legend.onAdd = function () {
+    const div = L.DomUtil.create("div", "legend");
+    div.innerHTML = "<strong>樹種ポリゴン 凡例</strong><br>";
+
+    Object.keys(styleMap).forEach(key => {
+      const item = styleMap[key];
+
+      div.innerHTML += `
+        <div>
+          <span style="
+            display:inline-block;
+            width:18px;
+            height:18px;
+            background:${item.color};
+            opacity:${item.opacity};
+            border:1px solid #000;
+          "></span>
+          ${item.label}
+        </div>
+      `;
+    });
+
+    return div;
+  };
+
+  legend.addTo(map);
+}
+
+
+/* ============================================================
+   樹種2024（PBF + style.json）ベクタタイル
    ============================================================ */
 fetch("https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/style.json")
   .then(res => res.json())
   .then(styleJson => {
-
-    const vectorStyles = convertStyleJsonToVectorGridStyles(styleJson);
+    const styleMap = buildTreeSpeciesStyleMap(styleJson);
 
     const layerTREESP2024 = L.vectorGrid.protobuf(
       "https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/{z}/{x}/{y}.pbf",
       {
-        vectorTileLayerStyles: vectorStyles,
+        vectorTileLayerStyles: {
+          "樹種ポリゴン": createTreeSpeciesVectorStyle(styleMap)
+        },
         maxZoom: 30,
-        minZoom: 12,
+        minZoom: 8,
         maxNativeZoom: 18,
         interactive: true
       }
     );
 
     layerControl.addOverlay(layerTREESP2024, "樹種2024（ベクタタイル）");
+
+    createTreeSpeciesLegend(styleMap);
   });
