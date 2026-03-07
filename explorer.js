@@ -84,7 +84,7 @@ const layerDCHMGray = new L.TileLayer.TerrainGray(
 
 /* ===== 林野庁・簡易オルソ画像（能登地域2024） ===== */
 const layerORTHO2024 = L.tileLayer(
-  "https://www.geospatial.jp/ckan/dataset/rinya-orthophoto-noto2024",
+  "https://forestgeo.info/opendata/17_ishikawa/noto/orthophoto_2024/{z}/{x}/{y}.webp",
   {
     attribution: "林野庁・簡易オルソ画像",
     maxZoom: 30,
