@@ -92,6 +92,16 @@ const layerORTHO2024 = L.tileLayer(
   }
 );
 
+/* ===== 林野庁・樹種ポリゴン（能登地域2024）===== */
+const layerTREESP = L.tileLayer(
+  "https://www.geospatial.jp/ckan/dataset/rinya-treespecies-noto2024",
+  {
+    attribution: "林野庁・樹種ポリゴン",
+    maxZoom: 30,
+    maxNativeZoom: 18,
+    opacity: 0.8
+  }
+)
 
 /* ===== レイヤコントロール ===== */
 L.control.layers(
@@ -101,6 +111,7 @@ L.control.layers(
     "DCHM PNG": layerDCHMPNG,
     "DCHM 樹高グレースケール": layerDCHMGray,
     "地形変化量": layerhenka,
+    "樹種ポリゴン": layerTREESP,
     "簡易オルソ": layerORTHO2024
   },
   { position: "bottomleft" }
