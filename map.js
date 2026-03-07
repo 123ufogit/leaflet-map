@@ -119,7 +119,7 @@ L.control.layers(
     "地理院地図（標準）": layerGSIstd,
     "OpenStreetMap": layerOSM,
     "地理院空中写真": layerGSIort,
-    "林野庁・簡易オルソ2024": layerORTHI2024
+    "林野庁・簡易オルソ2024": layerORTHO2024
   },
   {
     "CS立体図（透過50%）": layerCSmap50
