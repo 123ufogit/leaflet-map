@@ -89,6 +89,7 @@ const layerORTHO2024 = L.tileLayer(
     attribution: "林野庁・簡易オルソ画像",
     maxZoom: 30,
     maxNativeZoom: 18,
+    opacity: 0.5
   }
 );
 
