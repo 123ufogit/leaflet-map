@@ -161,3 +161,56 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
     // ★ 正しい追加方法（ここで layerControl に登録）
     layerControl.addOverlay(layerHANDOKU, "判読図（ベクタタイル）");
   });
+
+/* ============================================================
+   樹種2024（PBF + style.json）ベクタタイル
+   ============================================================ */
+fetch("https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/style.json")
+  .then(res => res.json())
+  .then(style => {
+
+    const layerStyles = {};
+
+    style.layers.forEach(layer => {
+      if (!layer.paint) return;
+
+      // 塗りつぶし
+      if (layer.type === "fill") {
+        layerStyles[layer.id] = {
+          fill: true,
+          fillColor: layer.paint["fill-color"] ?? "#888",
+          fillOpacity: layer.paint["fill-opacity"] ?? 0.8,
+          stroke: false
+        };
+      }
+
+      // ライン
+      if (layer.type === "line") {
+        layerStyles[layer.id] = {
+          stroke: true,
+          color: layer.paint["line-color"] ?? "#000",
+          weight: layer.paint["line-width"] ?? 1,
+          opacity: layer.paint["line-opacity"] ?? 1
+        };
+      }
+
+      // シンボル（簡易対応）
+      if (layer.type === "symbol") {
+        layerStyles[layer.id] = { icon: false };
+      }
+    });
+
+    // ベクタタイルレイヤー作成
+    const layerTREESP2024 = L.vectorGrid.protobuf(
+      "https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/{z}/{x}/{y}.pbf",
+      {
+        vectorTileLayerStyles: layerStyles,
+        maxZoom: 30,
+        minZoom: 10,
+        interactive: true
+      }
+    );
+
+    // レイヤコントロールに追加
+    layerControl.addOverlay(layerTREESP2024, "樹種2024（ベクタタイル）");
+  });
