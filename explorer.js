@@ -86,16 +86,6 @@ const layerDCHMGray = new L.TileLayer.TerrainGray(
   }
 );
 
-const layerORTHO2024 = L.tileLayer(
-  "https://forestgeo.info/opendata/17_ishikawa/noto/orthophoto_2024/{z}/{x}/{y}.webp",
-  {
-    attribution: "林野庁・簡易オルソ画像",
-    maxZoom: 30,
-    maxNativeZoom: 18,
-    opacity: 0.5
-  }
-);
-
 const layerTREESP = L.tileLayer(
   "https://www.geospatial.jp/ckan/dataset/rinya-treespecies-noto2024",
   {
@@ -118,7 +108,7 @@ const layerControl = L.control.layers(
     "DCHM 樹高グレースケール": layerDCHMGray,
     "地形変化量 T-RGB": layerhenkaTRGB,
     "樹種ポリゴン": layerTREESP,
-    "簡易オルソ": layerORTHO2024
+    "判読図（ベクタタイル）": layerHANDOKU
   },
   { position: "bottomleft" }
 ).addTo(map);
@@ -168,6 +158,4 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
         interactive: true
       }
     );
-
-    layerControl.addOverlay(layerHANDOKU, "判読図（ベクタタイル）");
   });
