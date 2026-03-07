@@ -96,6 +96,23 @@ const layerTREESP = L.tileLayer(
   }
 );
 
+
+/* ============================================================
+   レイヤコントロール（判読図はまだ入れない）
+   ============================================================ */
+const layerControl = L.control.layers(
+  null,
+  {
+    "DCHM T-RGB": layerDCHMTRGB,
+    "DCHM PNG": layerDCHMPNG,
+    "DCHM 樹高グレースケール": layerDCHMGray,
+    "地形変化量 T-RGB": layerhenkaTRGB,
+    "樹種ポリゴン": layerTREESP
+  },
+  { position: "bottomleft" }
+).addTo(map);
+
+
 /* ============================================================
    判読図（PBF + style.json）ベクタタイル
    ============================================================ */
@@ -140,20 +157,7 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
         interactive: true
       }
     );
-  });
 
-/* ============================================================
-   レイヤコントロール（すべてオーバーレイヤ）
-   ============================================================ */
-const layerControl = L.control.layers(
-  null,   // ← ベースレイヤなし
-  {
-    "DCHM T-RGB": layerDCHMTRGB,
-    "DCHM PNG": layerDCHMPNG,
-    "DCHM 樹高グレースケール": layerDCHMGray,
-    "地形変化量 T-RGB": layerhenkaTRGB,
-    "樹種ポリゴン": layerTREESP,
-    "判読図（ベクタタイル）": layerHANDOKU
-  },
-  { position: "bottomleft" }
-).addTo(map);
+    // ★ 正しい追加方法（ここで layerControl に登録）
+    layerControl.addOverlay(layerHANDOKU, "判読図（ベクタタイル）");
+  });
