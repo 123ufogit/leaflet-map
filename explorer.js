@@ -82,6 +82,17 @@ const layerDCHMGray = new L.TileLayer.TerrainGray(
   }
 );
 
+/* ===== 林野庁・簡易オルソ画像（能登地域2024） ===== */
+const layerORTHO2024 = L.tileLayer(
+  "https://www.geospatial.jp/ckan/dataset/rinya-orthophoto-noto2024",
+  {
+    attribution: "林野庁・簡易オルソ画像",
+    maxZoom: 30,
+    maxNativeZoom: 18,
+  }
+);
+
+
 /* ===== レイヤコントロール ===== */
 L.control.layers(
   null,
@@ -89,7 +100,8 @@ L.control.layers(
     "DCHM T-RGB": layerDCHMTRGB,
     "DCHM PNG": layerDCHMPNG,
     "DCHM 樹高グレースケール": layerDCHMGray,
-    "地形変化量": layerhenka
+    "地形変化量": layerhenka,
+    "簡易オルソ": layerORTHO2024
   },
   { position: "bottomleft" }
 ).addTo(map);
