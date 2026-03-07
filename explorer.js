@@ -27,7 +27,7 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
         const max = 50;
         let gray = (elevation - min) / (max - min) * 255;
         gray = Math.max(0, Math.min(255, gray));
-
+        gray = 255 - gray;
         data[i] = data[i + 1] = data[i + 2] = gray;
       }
 
