@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <title>Leaflet TB 0.1 森林調査</title>
+  <title>Leaflet EXP 0.1 県営林管理</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Leaflet -->
@@ -26,18 +26,15 @@
 </style>
 
 </head>
-
 <body>
-
   <div id="header">
     <button id="menuBtn" class="mobile-only">≡</button>
-    Leaflet Tree Browser 0.1 森林調査
+    Leaflet EXP 0.1 県営林管理
   </div>
   <div id="container">
 
     <!-- サイドバー -->
     <div id="sidebar">
-
       <div class="tab-buttons">
         <div id="tabAttr" class="active">属性情報</div>
         <div id="tabPhoto">写真管理</div>
@@ -72,17 +69,9 @@
   window.defaultOverlayCS = true;       // CS立体図（透過）を初期表示で ON
 </script>
 
-<!-- 編集システム -->
-<script src="tree-db.js"></script>
-<script src="tree-edit.js"></script>
-<script src="sync.js"></script>
-
 <!-- 既存ロジック（地図 → 統計 → 写真） -->
 <script src="map.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="drawtree.js"></script>
-<script src="treeplot.js"></script>
-<script src="treestat.js"></script>
 <script src="photo.js"></script>
 <script src="export.js"></script>
   
@@ -92,8 +81,8 @@
  }
 </script>  
 <footer id="footer">
-  <a href="https://123ufogit.github.io/leaflet-map/aboutTB.html">
-    About Leaflet Tree Browser
+  <a href="">
+    About Leaflet
   </a>
 </footer>
 </body>
