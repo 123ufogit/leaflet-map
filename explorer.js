@@ -1,4 +1,4 @@
-/* ===== Terrain-RGB → 樹高グレースケール変換レイヤー ===== */
+/* ===== Terrain-RGB → 樹高グレースケール（白黒反転版） ===== */
 L.TileLayer.TerrainGray = L.TileLayer.extend({
   createTile: function (coords, done) {
     const tile = document.createElement("canvas");
@@ -28,6 +28,9 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
         let gray = (elevation - min) / (max - min) * 255;
         gray = Math.max(0, Math.min(255, gray));
 
+        // ★ 白黒反転 ★
+        gray = 255 - gray;
+
         data[i] = data[i + 1] = data[i + 2] = gray;
       }
 
@@ -39,57 +42,3 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
     return tile;
   }
 });
-
-/* ===== 既存レイヤー ===== */
-const layerDCHMTRGB = L.tileLayer(
-  "https://forestgeo.info/opendata/17_ishikawa/noto/dchm_terrainRGB_2024/{z}/{x}/{y}.png",
-  {
-    attribution: "林野庁・DCHM（Terrain-RGB）",
-    maxZoom: 30,
-    maxNativeZoom: 18,
-    opacity: 0.5
-  }
-);
-
-const layerDCHMPNG = L.tileLayer(
-  "https://forestgeo.info/opendata/17_ishikawa/noto/dchm_2024/{z}/{x}/{y}.png",
-  {
-    attribution: "林野庁・DCHM（PNG）",
-    maxZoom: 30,
-    maxNativeZoom: 18,
-    opacity: 0.5
-  }
-);
-
-const layerhenka = L.tileLayer(
-  "https://www.geospatial.jp/ckan/dataset/rinya-henka-noto2024",
-  {
-    attribution: "林野庁・地形変化量データ",
-    maxZoom: 30,
-    maxNativeZoom: 18,
-    opacity: 0.5
-  }
-);
-
-/* ===== 新規追加：Terrain-RGB → 樹高グレースケール ===== */
-const layerDCHMGray = new L.TileLayer.TerrainGray(
-  "https://forestgeo.info/opendata/17_ishikawa/noto/dchm_terrainRGB_2024/{z}/{x}/{y}.png",
-  {
-    attribution: "DCHM 樹高グレースケール",
-    maxZoom: 30,
-    maxNativeZoom: 18,
-    opacity: 0.8
-  }
-);
-
-/* ===== レイヤコントロール ===== */
-L.control.layers(
-  null,
-  {
-    "DCHM T-RGB": layerDCHMTRGB,
-    "DCHM PNG": layerDCHMPNG,
-    "DCHM 樹高グレースケール": layerDCHMGray,
-    "地形変化量": layerhenka
-  },
-  { position: "bottomleft" }
-).addTo(map);
