@@ -22,7 +22,6 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
         const B = data[i + 2];
 
         const elevation = (R * 256 * 256 + G * 256 + B) * 0.1 - 10000;
-
         const min = 0;
         const max = 50;
         let gray = (elevation - min) / (max - min) * 255;
@@ -382,3 +381,34 @@ function makeCollapsibleLegend(title, contentHtml) {
 
   return container;
 }
+
+/* ============================================================
+   全国森林資源メッシュ（20m）ベクトルタイル
+   属性は無視し、ポリゴン枠線のみ灰色で表示
+   ============================================================ */
+
+const mesh20mStyle = {
+  // PBF 内のレイヤ名は "fr_mesh20m"（仕様より）
+  "fr_mesh20m": function () {
+    return {
+      stroke: true,
+      color: "#888888",   // ★ 細い灰色の線
+      weight: 0.5,        // ★ 線の太さ
+      fill: false         // ★ 塗りつぶしなし
+    };
+  }
+};
+
+const layerMesh20m = L.vectorGrid.protobuf(
+  "https://rinya-tiles.geospatial.jp/fr_mesh20m_pbf_2025/{z}/{x}/{y}.pbf",
+  {
+    vectorTileLayerStyles: mesh20mStyle,
+    maxZoom: 30,
+    minZoom: 8,
+    maxNativeZoom: 18,
+    interactive: false   // 属性を使わないので OFF
+  }
+);
+
+// レイヤコントロールに追加
+layerControl.addOverlay(layerMesh20m, "森林資源メッシュ20m（枠線のみ）");
