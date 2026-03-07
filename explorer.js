@@ -132,7 +132,7 @@ function convertStyleJsonToVectorGridStyles(styleJson) {
       styles[id] = {
         fill: true,
         fillColor: layer.paint["fill-color"] ?? "#888",
-        fillOpacity: layer.paint["fill-opacity"] ?? 0.8,
+        fillOpacity: layer.paint["fill-opacity"] ?? 0.5,
         stroke: false
       };
     }
@@ -142,7 +142,7 @@ function convertStyleJsonToVectorGridStyles(styleJson) {
         stroke: true,
         color: layer.paint["line-color"] ?? "#000",
         weight: layer.paint["line-width"] ?? 1,
-        opacity: layer.paint["line-opacity"] ?? 1
+        opacity: layer.paint["line-opacity"] ?? 0.8
       };
     }
 
