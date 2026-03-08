@@ -204,7 +204,7 @@ const mesh20mStyle = {
     weight: 0.1,
     fill: true,
     fillColor: "#000000",
-    fillOpacity: 0.05,
+    fillOpacity: 0.01,
     interactive: true
   })
 };
