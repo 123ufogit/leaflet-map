@@ -7,17 +7,14 @@
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css">
 
   <!-- Pannellum -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.css">
-  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2c3e50">
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="label.css">
-  <link rel="stylesheet" href="photo.css">
 
   <style>
 .area-label {
@@ -52,21 +49,6 @@
   </div>
   <div id="container">
 
-    <!-- サイドバー -->
-    <div id="sidebar">
-      <div class="tab-buttons">
-        <div id="tabAttr" class="active">属性情報</div>
-        <div id="tabPhoto">写真管理</div>
-      </div>
-      <div id="attrPanel" class="tab-content active">
-      <div id="attrContent"></div>
-      </div>
-      <div id="photoPanel" class="tab-content">
-        <input type="file" id="photoInput" accept="image/jpeg" multiple><br><br>
-        <div id="photoList"></div>
-      </div>
-    </div>
-
         <!-- 地図 -->
     <div id="map">
 　    <button id="locateBtn" class="locate-btn"></button>
@@ -76,10 +58,6 @@
 
   <!-- JSライブラリ（順番厳守） -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://unpkg.com/leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js"></script>
 
@@ -90,16 +68,79 @@
 </script>
 
 <!-- 既存ロジック（地図 → 統計 → 写真） -->
-<script src="map.js"></script>
 <script src="rasterLayers.js"></script>      <!-- ラスタ -->
 <script src="treespecies.js"></script>  <!-- 樹種2024 -->
 <script src="handoku.js"></script>      <!-- 判読図 -->
 <script src="mesh7.js"></script>
   
 <script>
- if ("serviceWorker" in navigator) {
-   navigator.serviceWorker.register("service-worker.js");
- }
+
+/* ===== ベースレイヤー定義 ===== */
+const layerGSIstd = L.tileLayer(
+  "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
+  {
+    attribution: "地理院タイル（標準）",
+    maxZoom: 30,
+    maxNativeZoom: 18
+  }
+);
+
+const layerOSM = L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    attribution: "© OpenStreetMap contributors",
+    maxZoom: 30,
+    maxNativeZoom: 18
+  }
+);
+
+const layerGSIort = L.tileLayer(
+  "https://cyberjapandata.gsi.go.jp/xyz/ort/{z}/{x}/{y}.jpg",
+  {
+    attribution: "地理院タイル（空中写真）",
+    maxZoom: 30,
+    maxNativeZoom: 18
+  }
+);
+
+
+/* ===== 初期表示レイヤーを HTML 側の設定で切り替える ===== */
+
+// ベースレイヤー選択
+let baseLayer = layerGSIstd;  // デフォルト
+
+if (window.defaultBaseLayer === "osm") baseLayer = layerOSM;
+if (window.defaultBaseLayer === "ort") baseLayer = layerGSIort;
+
+// 初期レイヤー配列（ベースレイヤーは必ず1つ）
+let initialLayers = [baseLayer];
+
+// オーバーレイ（複数対応可能）
+if (window.defaultOverlayCS === true) initialLayers.push(layerCSmap50);
+
+/* ===== 地図初期化（★初期位置を石川県庁、ズーム9に変更） ===== */
+const map = L.map("map", {
+  center: [36.594553, 136.625639],   // ★ 石川県庁
+  zoom: 9,                            // ★ 石川県全体が入る
+  maxZoom: 30,
+  layers: initialLayers
+});
+// ★ 初期レイアウト確定後に Leaflet のサイズを再計算（安全）
+setTimeout(() => {
+  map.invalidateSize();
+}, 200);
+
+/* ===== レイヤーコントロール ===== */
+window.layerControl = L.control.layers(
+  {
+    "地理院地図（標準）": layerGSIstd,
+    "OpenStreetMap": layerOSM,
+    "地理院空中写真": layerGSIort,
+    "林野庁・簡易オルソ2024": layerORTHO2024
+  },
+  {},   // ★ オーバーレイは空で作る
+  { position: "topright" }
+).addTo(map);
 </script>  
 </body>
 </html>
