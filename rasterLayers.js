@@ -66,7 +66,6 @@ const layerCSMap = L.tileLayer(
   { attribution: "林野庁・CS立体図", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
 );
 
-
 const layerDCHMTRGB = L.tileLayer(
   "https://forestgeo.info/opendata/17_ishikawa/noto/dchm_terrainRGB_2024/{z}/{x}/{y}.png",
   { attribution: "林野庁・DCHM（T-RGB）", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
@@ -82,7 +81,6 @@ const layerhenkaPNG = L.tileLayer(
   { attribution: "林野庁・地形変化量データ(PNG)", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
 );
 
-
 const layerhenkaTRGB = L.tileLayer(
   "https://forestgeo.info/opendata/17_ishikawa/noto/henka_terrainRGB_2024/{z}/{x}/{y}.png",
   { attribution: "林野庁・地形変化量データ(T-RGB)", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
@@ -93,12 +91,22 @@ const layerDCHMGray = new L.TileLayer.TerrainGray(
   { attribution: "DCHM グレースケール加工", maxZoom: 30, maxNativeZoom: 18, opacity: 0.8 }
 );
 
+const layerORTHO2024 = L.tileLayer(
+  "https://forestgeo.info/opendata/17_ishikawa/noto/orthophoto_2024/{z}/{x}/{y}.webp",
+  { attribution: "林野庁・簡易オルソ画像（2024）",maxZoom: 30,maxNativeZoom: 18,
+  }
+);
+
 /* ============================================================
    ★ 共通 overlayControl に追加（左下）
    ============================================================ */
 window.overlayControl.addOverlay(layerDEMPNG, "DEM PNG");
 window.overlayControl.addOverlay(layerDEMTRGB, "DEM T-RGB");
+window.overlayControl.addOverlay(layerCSMap, "CS立体図");
 window.overlayControl.addOverlay(layerDCHMTRGB, "DCHM T-RGB");
 window.overlayControl.addOverlay(layerDCHMPNG, "DCHM PNG");
+window.overlayControl.addOverlay(layerhenkaPNG, "地形変化量 PNG");
 window.overlayControl.addOverlay(layerhenkaTRGB, "地形変化量 T-RGB");
 window.overlayControl.addOverlay(layerDCHMGray, "DCHM グレースケール加工*");
+window.overlayControl.addOverlay(layerhenkaTRGB, "地形変化量 T-RGB");
+window.overlayControl.addOverlay(layerORTHO2024, "簡易オルソ");
