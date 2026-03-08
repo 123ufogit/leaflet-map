@@ -1,10 +1,8 @@
 /* ============================================================
-   森林資源メッシュ20m（空間結合フル実装版・meshcode不要版）
-   - 20m メッシュクリック → 以下を空間結合して属性表示
+   森林資源メッシュ20m（軽量版・meshcode不要）
+   - 20m メッシュクリック → 空間結合して属性表示
      * 樹種2024（VectorGrid）
-     * 判読図（VectorGrid）
      * DCHM PNG 平均値（樹高5m未満が50%以上なら空欄＝無立木地）
-     * 地形変化量 T-RGB 最大値
    ============================================================ */
 
 // ★ 左下レイヤコントロールが無ければ作成
@@ -36,13 +34,9 @@ function showMeshAttributesWithJoin(meshProps, joinProps) {
    クリック位置から 20m メッシュ Polygon を生成（meshcode 不要）
    ============================================================ */
 function getMeshPolygonFromClick(lat, lng) {
-  // 20m → 緯度差
   const dLat = 20 / 111320;
-
-  // 20m → 経度差（緯度依存）
   const dLon = 20 / (111320 * Math.cos(lat * Math.PI / 180));
 
-  // クリック位置を含む 20m メッシュの左下を求める
   const lat0 = Math.floor(lat / dLat) * dLat;
   const lon0 = Math.floor(lng / dLon) * dLon;
 
@@ -55,11 +49,6 @@ function getMeshPolygonFromClick(lat, lng) {
   ]]);
 }
 
-/* ============================================================
-   メッシュ Polygon を作る
-   ※ 旧：VectorGrid geometry / meshcode 依存
-   ※ 新：クリック位置から 20m 格子を生成
-   ============================================================ */
 function getMeshPolygon(e) {
   const lat = e.latlng.lat;
   const lng = e.latlng.lng;
@@ -67,8 +56,7 @@ function getMeshPolygon(e) {
 }
 
 /* ============================================================
-   VectorGrid 空間結合（樹種2024・判読図）
-   ※ layerName は PBF の source-layer 名に合わせて要調整
+   VectorGrid 空間結合（樹種2024）
    ============================================================ */
 async function getVectorGridJoin(vgLayer, layerName, meshPoly) {
   const z = map.getZoom();
@@ -100,7 +88,7 @@ async function getVectorGridJoin(vgLayer, layerName, meshPoly) {
 }
 
 /* ============================================================
-   ラスタのピクセル値を Polygon 内でサンプリング
+   ラスタのピクセル値を Polygon 内でサンプリング（DCHM 用）
    ============================================================ */
 async function sampleRaster(tileLayer, meshPoly) {
   return new Promise(resolve => {
@@ -140,7 +128,6 @@ async function sampleRaster(tileLayer, meshPoly) {
               const G = imgData[idx + 1];
               const B = imgData[idx + 2];
 
-              // TerrainRGB → 樹高（m）
               const h = (R * 256 * 256 + G * 256 + B) * 0.1 - 10000;
 
               const latlng = map.unproject(
@@ -185,17 +172,7 @@ async function getDCHMStats(meshPoly) {
 }
 
 /* ============================================================
-   地形変化量 最大値
-   ============================================================ */
-async function getHenkaMax(meshPoly) {
-  const pixels = await sampleRaster(layerhenkaTRGB, meshPoly);
-  if (!pixels.length) return { max: "" };
-
-  return { max: Math.max(...pixels).toFixed(1) };
-}
-
-/* ============================================================
-   メッシュ20mスタイル（透明 fill でクリック判定を広げる）
+   メッシュ20mスタイル
    ============================================================ */
 const mesh20mStyle = {
   "全国森林資源メッシュ": () => ({
@@ -222,43 +199,35 @@ const layerMesh20m = L.vectorGrid.protobuf(
   }
 );
 
-// ★ 初期表示 ON
+// 初期表示 ON
 layerMesh20m.addTo(map);
 
-// ★ overlayControl に登録
+// overlayControl に登録
 window.overlayControl.addOverlay(layerMesh20m, "森林資源メッシュ20m");
 
 /* ============================================================
-   クリック → 20m格子生成 → 空間結合 → 属性表示
+   クリック → 20m格子生成 → 空間結合（樹種2024・DCHM） → 属性表示
    ============================================================ */
 layerMesh20m.on("click", async function (e) {
-  // meshProps は現状ほぼ空（森林簿属性は別レイヤ由来なのでここでは使わない前提）
   const meshProps = e.layer && e.layer.properties ? e.layer.properties : {};
 
   const meshPoly = getMeshPolygon(e);
-
   if (!meshPoly) {
     showMeshAttributesWithJoin(meshProps, {});
     return;
   }
 
-  // ★ ここは実際の PBF の source-layer 名に合わせて調整
   const treesp = typeof layerTREESP2024 !== "undefined"
     ? await getVectorGridJoin(layerTREESP2024, "treespecies", meshPoly)
     : null;
 
-  const handoku = typeof layerHANDOKU !== "undefined"
-    ? await getVectorGridJoin(layerHANDOKU, "handoku", meshPoly)
-    : null;
-
-  const dchm  = typeof layerDCHMPNG   !== "undefined" ? await getDCHMStats(meshPoly) : { avg: "" };
-  const henka = typeof layerhenkaTRGB !== "undefined" ? await getHenkaMax(meshPoly)  : { max: "" };
+  const dchm = typeof layerDCHMPNG !== "undefined"
+    ? await getDCHMStats(meshPoly)
+    : { avg: "" };
 
   const joinProps = {
     "樹種2024": treesp ? (treesp?.樹種名 ?? JSON.stringify(treesp)) : "",
-    "平均樹高(DCHM)": dchm.avg,
-    "地形変化量 最大値": henka.max,
-    "判読図": handoku ? (handoku?.分類 ?? JSON.stringify(handoku)) : ""
+    "平均樹高(DCHM)": dchm.avg
   };
 
   showMeshAttributesWithJoin(meshProps, joinProps);
