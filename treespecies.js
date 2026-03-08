@@ -76,7 +76,7 @@ function createTreeSpeciesVectorStyle(styleJson) {
     return {
       fill: true,
       fillColor: entry.color,
-      fillOpacity: 0.5,   // ★ 常に 50% で塗りつぶし
+      fillOpacity: 0.3,
       stroke: false
     };
   };
