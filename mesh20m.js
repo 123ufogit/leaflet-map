@@ -19,50 +19,104 @@ if (!window.overlayControl) {
 function showMeshAttributesWithJoin(meshProps, joinProps) {
   let html = "<table class='attr-table'>";
 
-  // 元のメッシュ属性
   for (let key in meshProps) {
     html += `<tr><td><b>${key}</b></td><td>${meshProps[key]}</td></tr>`;
   }
 
-  // 空間結合した属性
   for (let key in joinProps) {
-    html += `<tr><td><b>${key}</b></td><td>${joinProps[key]}</td></tr>`;
+    html += `<tr><td><b>${key}</b></td><td>${joinProps[key] ?? ""}</td></tr>`;
   }
 
   html += "</table>";
-  document.getElementById("attrContent").innerHTML = html;
+  const el = document.getElementById("attrContent");
+  if (el) el.innerHTML = html;
 }
 
 /* ============================================================
-   メッシュ Polygon を作る（VectorGrid 内部 feature から生成）
+   meshcode から 20m メッシュ Polygon を生成（近似）
+   ※ 実際の森林資源メッシュ20m仕様に合わせて調整推奨
+   ============================================================ */
+function getMeshPolygonFromMeshcode(meshcode) {
+  // 数値化
+  const code = Number(meshcode);
+  if (!Number.isFinite(code)) return null;
+
+  // ここでは「第3次メッシュ相当 + 細分」を想定した近似例
+  // lat0, lon0 は「左下隅」の緯度経度
+  // UFO の実データ仕様に合わせてここは調整してよい
+  const latBase = Math.floor(code / 10000);      // 仮：南北方向インデックス
+  const lonBase = code % 10000;                  // 仮：東西方向インデックス
+
+  // 仮の換算（1 インデックス ≒ 1km として、その中を 50×50 で 20m）
+  const lat0km = latBase / 1.5;                  // 日本標準地域メッシュの緯度換算の典型
+  const lon0km = lonBase / 1.0 + 100;            // 経度換算の典型（東経100度起点）
+
+  // 20m を緯度・経度に換算（近似）
+  const dLat = 20 / 111320;                      // 20m → 緯度差
+  const dLon = 20 / (111320 * Math.cos(lat0km * Math.PI / 180)); // 20m → 経度差
+
+  const lon0 = lon0km;
+  const lat0 = lat0km;
+
+  return turf.polygon([[
+    [lon0,        lat0       ],
+    [lon0 + dLon, lat0       ],
+    [lon0 + dLon, lat0 + dLat],
+    [lon0,        lat0 + dLat],
+    [lon0,        lat0       ]
+  ]]);
+}
+
+/* ============================================================
+   メッシュ Polygon を作る
+   1. VectorGrid の geometry があればそれを使う
+   2. 無ければ meshcode から復元する
    ============================================================ */
 function getMeshPolygon(e) {
   const feat = e.layer._vectorTileFeature;
-  if (!feat || !feat.geometry || !feat.geometry[0]) {
-    console.warn("VectorTileFeature geometry が取得できませんでした", feat);
+
+  if (feat && feat.geometry && feat.geometry[0]) {
+    const coords = feat.geometry[0];
+    return turf.polygon([coords]);
+  }
+
+  const props = e.layer.properties || {};
+  const meshcode = props.meshcode || props.MESH20 || props.MESH_ID;
+
+  if (!meshcode) {
+    console.warn("メッシュコードが見つからず、Polygon を生成できませんでした", props);
     return null;
   }
-  const coords = feat.geometry[0]; // Polygon のリング
-  return turf.polygon([coords]);
+
+  const poly = getMeshPolygonFromMeshcode(meshcode);
+  if (!poly) {
+    console.warn("meshcode から Polygon を生成できませんでした", meshcode);
+  }
+  return poly;
 }
 
 /* ============================================================
    VectorGrid 空間結合（樹種2024・判読図）
+   ※ layerName は PBF の source-layer 名に合わせて要調整
    ============================================================ */
 async function getVectorGridJoin(vgLayer, layerName, meshPoly) {
-  // VectorGrid の内部タイル取得 API を利用
-  // ここでは現在のズームとクリック位置からタイル座標を推定
   const z = map.getZoom();
   const bbox = turf.bbox(meshPoly);
   const centerLng = (bbox[0] + bbox[2]) / 2;
   const centerLat = (bbox[1] + bbox[3]) / 2;
+
   const p = map.project([centerLat, centerLng], z).divideBy(256).floor();
   const coords = { z, x: p.x, y: p.y };
+
+  if (!vgLayer._getVectorTilePromise) {
+    console.warn("VectorGrid に _getVectorTilePromise がありません");
+    return null;
+  }
 
   const tile = await vgLayer._getVectorTilePromise(coords);
   if (!tile || !tile.layers || !tile.layers[layerName]) return null;
 
-  const features = tile.layers[layerName].features;
+  const features = tile.layers[layerName].features || [];
 
   for (const f of features) {
     if (!f.geometry || !f.geometry[0]) continue;
@@ -206,28 +260,31 @@ window.overlayControl.addOverlay(layerMesh20m, "森林資源メッシュ20m");
    クリック → 空間結合 → 属性表示
    ============================================================ */
 layerMesh20m.on("click", async function (e) {
-  const meshProps = e.layer.properties;
+  const meshProps = e.layer.properties || {};
   const meshPoly = getMeshPolygon(e);
 
   if (!meshPoly) {
-    // Polygon が取れない場合は元属性だけ表示
     showMeshAttributesWithJoin(meshProps, {});
     return;
   }
 
-  // VectorGrid 結合（source-layer 名は実際のものに合わせて要調整）
-  const treesp  = await getVectorGridJoin(layerTREESP2024, "treespecies", meshPoly);
-  const handoku = await getVectorGridJoin(layerHANDOKU, "handoku", meshPoly);
+  // ★ ここは実際の PBF の source-layer 名に合わせて調整
+  const treesp  = typeof layerTREESP2024 !== "undefined"
+    ? await getVectorGridJoin(layerTREESP2024, "treespecies", meshPoly)
+    : null;
 
-  // ラスタ統計
-  const dchm  = await getDCHMStats(meshPoly);
-  const henka = await getHenkaMax(meshPoly);
+  const handoku = typeof layerHANDOKU !== "undefined"
+    ? await getVectorGridJoin(layerHANDOKU, "handoku", meshPoly)
+    : null;
+
+  const dchm  = typeof layerDCHMPNG   !== "undefined" ? await getDCHMStats(meshPoly) : { avg: "" };
+  const henka = typeof layerhenkaTRGB !== "undefined" ? await getHenkaMax(meshPoly)  : { max: "" };
 
   const joinProps = {
-    "樹種2024": treesp ? (treespp.樹種名 || JSON.stringify(treesp)) : "",
+    "樹種2024": treesp ? (treespp?.樹種名 ?? JSON.stringify(treesp)) : "",
     "平均樹高(DCHM)": dchm.avg,
     "地形変化量 最大値": henka.max,
-    "判読図": handoku ? (handoku.分類 || JSON.stringify(handoku)) : ""
+    "判読図": handoku ? (handoku?.分類 ?? JSON.stringify(handoku)) : ""
   };
 
   showMeshAttributesWithJoin(meshProps, joinProps);
