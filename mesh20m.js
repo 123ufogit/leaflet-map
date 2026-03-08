@@ -1,5 +1,5 @@
 /* ============================================================
-   森林資源メッシュ20m（空間結合フル実装版）
+   森林資源メッシュ20m（空間結合フル実装版・meshcode不要版）
    - 20m メッシュクリック → 以下を空間結合して属性表示
      * 樹種2024（VectorGrid）
      * 判読図（VectorGrid）
@@ -33,30 +33,18 @@ function showMeshAttributesWithJoin(meshProps, joinProps) {
 }
 
 /* ============================================================
-   meshcode から 20m メッシュ Polygon を生成（近似）
-   ※ 実際の森林資源メッシュ20m仕様に合わせて調整推奨
+   クリック位置から 20m メッシュ Polygon を生成（meshcode 不要）
    ============================================================ */
-function getMeshPolygonFromMeshcode(meshcode) {
-  // 数値化
-  const code = Number(meshcode);
-  if (!Number.isFinite(code)) return null;
+function getMeshPolygonFromClick(lat, lng) {
+  // 20m → 緯度差
+  const dLat = 20 / 111320;
 
-  // ここでは「第3次メッシュ相当 + 細分」を想定した近似例
-  // lat0, lon0 は「左下隅」の緯度経度
-  // UFO の実データ仕様に合わせてここは調整してよい
-  const latBase = Math.floor(code / 10000);      // 仮：南北方向インデックス
-  const lonBase = code % 10000;                  // 仮：東西方向インデックス
+  // 20m → 経度差（緯度依存）
+  const dLon = 20 / (111320 * Math.cos(lat * Math.PI / 180));
 
-  // 仮の換算（1 インデックス ≒ 1km として、その中を 50×50 で 20m）
-  const lat0km = latBase / 1.5;                  // 日本標準地域メッシュの緯度換算の典型
-  const lon0km = lonBase / 1.0 + 100;            // 経度換算の典型（東経100度起点）
-
-  // 20m を緯度・経度に換算（近似）
-  const dLat = 20 / 111320;                      // 20m → 緯度差
-  const dLon = 20 / (111320 * Math.cos(lat0km * Math.PI / 180)); // 20m → 経度差
-
-  const lon0 = lon0km;
-  const lat0 = lat0km;
+  // クリック位置を含む 20m メッシュの左下を求める
+  const lat0 = Math.floor(lat / dLat) * dLat;
+  const lon0 = Math.floor(lng / dLon) * dLon;
 
   return turf.polygon([[
     [lon0,        lat0       ],
@@ -69,30 +57,13 @@ function getMeshPolygonFromMeshcode(meshcode) {
 
 /* ============================================================
    メッシュ Polygon を作る
-   1. VectorGrid の geometry があればそれを使う
-   2. 無ければ meshcode から復元する
+   ※ 旧：VectorGrid geometry / meshcode 依存
+   ※ 新：クリック位置から 20m 格子を生成
    ============================================================ */
 function getMeshPolygon(e) {
-  const feat = e.layer._vectorTileFeature;
-
-  if (feat && feat.geometry && feat.geometry[0]) {
-    const coords = feat.geometry[0];
-    return turf.polygon([coords]);
-  }
-
-  const props = e.layer.properties || {};
-  const meshcode = props.meshcode || props.MESH20 || props.MESH_ID;
-
-  if (!meshcode) {
-    console.warn("メッシュコードが見つからず、Polygon を生成できませんでした", props);
-    return null;
-  }
-
-  const poly = getMeshPolygonFromMeshcode(meshcode);
-  if (!poly) {
-    console.warn("meshcode から Polygon を生成できませんでした", meshcode);
-  }
-  return poly;
+  const lat = e.latlng.lat;
+  const lng = e.latlng.lng;
+  return getMeshPolygonFromClick(lat, lng);
 }
 
 /* ============================================================
@@ -234,7 +205,7 @@ const mesh20mStyle = {
     fill: true,
     fillColor: "#000000",
     fillOpacity: 0.05,
-    interactive: true 
+    interactive: true
   })
 };
 
@@ -258,10 +229,12 @@ layerMesh20m.addTo(map);
 window.overlayControl.addOverlay(layerMesh20m, "森林資源メッシュ20m");
 
 /* ============================================================
-   クリック → 空間結合 → 属性表示
+   クリック → 20m格子生成 → 空間結合 → 属性表示
    ============================================================ */
 layerMesh20m.on("click", async function (e) {
-  const meshProps = e.layer.properties || {};
+  // meshProps は現状ほぼ空（森林簿属性は別レイヤ由来なのでここでは使わない前提）
+  const meshProps = e.layer && e.layer.properties ? e.layer.properties : {};
+
   const meshPoly = getMeshPolygon(e);
 
   if (!meshPoly) {
@@ -270,7 +243,7 @@ layerMesh20m.on("click", async function (e) {
   }
 
   // ★ ここは実際の PBF の source-layer 名に合わせて調整
-  const treesp  = typeof layerTREESP2024 !== "undefined"
+  const treesp = typeof layerTREESP2024 !== "undefined"
     ? await getVectorGridJoin(layerTREESP2024, "treespecies", meshPoly)
     : null;
 
@@ -282,7 +255,7 @@ layerMesh20m.on("click", async function (e) {
   const henka = typeof layerhenkaTRGB !== "undefined" ? await getHenkaMax(meshPoly)  : { max: "" };
 
   const joinProps = {
-    "樹種2024": treesp ? (treespp?.樹種名 ?? JSON.stringify(treesp)) : "",
+    "樹種2024": treesp ? (treesp?.樹種名 ?? JSON.stringify(treesp)) : "",
     "平均樹高(DCHM)": dchm.avg,
     "地形変化量 最大値": henka.max,
     "判読図": handoku ? (handoku?.分類 ?? JSON.stringify(handoku)) : ""
