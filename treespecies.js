@@ -82,13 +82,17 @@ function createTreeSpeciesVectorStyle(styleJson) {
   };
 }
 
-/* 樹種2024レイヤ本体 */
+/* ============================================================
+   樹種2024レイヤ本体（★ window に公開）
+   ============================================================ */
+
 fetch("https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/style.json")
   .then(res => res.json())
   .then(styleJson => {
     const vectorStyle = createTreeSpeciesVectorStyle(styleJson);
 
-    const layerTREESP2024 = L.vectorGrid.protobuf(
+    // ★★★ ここを修正：window に公開する ★★★
+    window.layerTREESP2024 = L.vectorGrid.protobuf(
       "https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/{z}/{x}/{y}.pbf",
       {
         vectorTileLayerStyles: {
@@ -100,7 +104,7 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/style.j
       }
     );
 
-    window.overlayControl.addOverlay(layerTREESP2024, "樹種2024");
+    window.overlayControl.addOverlay(window.layerTREESP2024, "樹種2024");
 
     const legend = createTreeSpeciesLegend(styleJson);
 
