@@ -58,6 +58,25 @@
 #credit-link a:hover {
   text-decoration: underline;
 }
+
+/* ★ 右下インフォグラフィック画像（地図の上に表示） */
+#portal-info-img {
+  position: fixed;
+  bottom: 60px; /* フッターリンクより少し上 */
+  right: 8px;
+  z-index: 9999;
+}
+#portal-info-img img {
+  width: 180px;
+  opacity: 0.95;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+#portal-info-img img:hover {
+  opacity: 1.0;
+}
   </style>
 
 </head>
@@ -77,6 +96,11 @@
   <!-- ★ フッターリンク（クレジットページへ） -->
   <div id="credit-link">
     <a href="portalcredit.html" target="_blank">データ出典・利用規約</a>
+  </div>
+
+  <!-- ★ 右下インフォグラフィック画像（地図の上に表示） -->
+  <div id="portal-info-img">
+    <img src="img/portalinfo.png" alt="このページの使い方">
   </div>
 
   <!-- JSライブラリ（順番厳守） -->
