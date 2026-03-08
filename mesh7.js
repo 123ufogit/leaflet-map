@@ -15,6 +15,25 @@ fetch("data/7kei_mesh_index.geojson")
         color: "#888888",   // 灰色
         weight: 1,
         fill: false
+      },
+      onEachFeature: function (feature, layer) {
+
+        // 図郭名
+        const name = feature.properties["図郭名"] || "図郭";
+
+        // ポップアップ内容
+        const popupHtml = `
+          <div style="font-size:14px;">
+            <b>${name}</b><br>
+            <a href="https://www.maff.go.jp/j/press/kanbo/bunsyo/240207.html"
+               target="_blank"
+               style="color:#0066cc;">
+               令和6年能登半島地震関連データポータル
+            </a>
+          </div>
+        `;
+
+        layer.bindPopup(popupHtml);
       }
     }).addTo(mesh7Group);
 
@@ -44,9 +63,9 @@ fetch("data/7kei_mesh_index.geojson")
       window.overlayControl.addOverlay(mesh7Group, "7系メッシュ");
     }
 
-    /* --- 4. 初期表示（必要なら） --- */
+    /* --- 4. 初期表示 --- */
     mesh7Group.addTo(map);
 
-    console.log("7系メッシュ（枠＋ラベル）を読み込みました");
+    console.log("7系メッシュ（枠＋ラベル＋ポップアップ）を読み込みました");
   })
   .catch(err => console.error("7系メッシュ読み込みエラー:", err));
