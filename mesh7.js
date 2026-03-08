@@ -17,18 +17,22 @@ fetch("data/7kei_mesh_index.geojson")
 
     /* --- 2. 図郭名ラベル（灰色文字） --- */
     const mesh7LabelLayer = L.geoJSON(json, {
-      pointToLayer: function (feature, latlng) {
-        // 図郭名の属性名（例：feature.properties["図郭名"]）
-        const label = feature.properties["図郭名"] || feature.properties["name"] || "";
+      onEachFeature: function (feature, layer) {
+        const label = feature.properties["図郭名"];
+        if (!label) return;
 
-        return L.marker(latlng, {
+        // MultiPolygon の重心を計算
+        const center = turf.center(feature).geometry.coordinates;
+        const latlng = L.latLng(center[1], center[0]);
+
+        L.marker(latlng, {
           icon: L.divIcon({
             className: "mesh7-label",
             html: `<span style="color:#666666; font-size:12px;">${label}</span>`,
             iconSize: [0, 0],
             iconAnchor: [0, 0]
           })
-        });
+        }).addTo(mesh7LabelLayer);
       }
     });
 
