@@ -1,15 +1,14 @@
 /* ============================================================
-   判読図2024（独立レイヤコントロール + 凡例連動）
-   map.js は変更しない
+   判読図2024（共通 overlayControl 利用 + 凡例連動）
    ============================================================ */
 
-// ★ 判読図レイヤ専用のレイヤコントロール（左下）
-const handokuLayerControl = L.control.layers({}, {}, { position: "bottomleft" });
-handokuLayerControl.addTo(map);
+// ★ 左下レイヤコントロールが無ければ作成
+if (!window.overlayControl) {
+  window.overlayControl = L.control.layers({}, {}, { position: "bottomleft" });
+  window.overlayControl.addTo(map);
+}
 
-/* ------------------------------------------------------------
-   凡例生成
------------------------------------------------------------- */
+/* 凡例生成 */
 function createHandokuLegend(styleJson) {
   const legend = L.control({ position: "bottomleft" });
 
@@ -54,7 +53,6 @@ function createHandokuLegend(styleJson) {
     const container = L.DomUtil.create("div");
     container.innerHTML = html;
 
-    // 折りたたみ
     const toggle = container.querySelector(".legend-toggle");
     const content = container.querySelector(".legend-content");
     toggle.onclick = () => {
@@ -65,13 +63,11 @@ function createHandokuLegend(styleJson) {
   };
 
   legend.addTo(map);
-  legend.getContainer().style.display = "none"; // 初期非表示
+  legend.getContainer().style.display = "none";
   return legend;
 }
 
-/* ------------------------------------------------------------
-   VectorGrid スタイル生成（複数 source-layer 対応）
------------------------------------------------------------- */
+/* VectorGrid スタイル生成（複数 source-layer 対応） */
 function convertHandokuStyles(styleJson) {
   const styles = {};
 
@@ -108,13 +104,10 @@ function convertHandokuStyles(styleJson) {
   return styles;
 }
 
-/* ------------------------------------------------------------
-   判読図レイヤ本体
------------------------------------------------------------- */
+/* 判読図レイヤ本体 */
 fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json")
   .then(res => res.json())
   .then(styleJson => {
-
     const vectorStyles = convertHandokuStyles(styleJson);
 
     const layerHANDOKU = L.vectorGrid.protobuf(
@@ -127,20 +120,16 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
       }
     );
 
-    // ★ 判読図レイヤを左下のコントロールに追加
-    handokuLayerControl.addOverlay(layerHANDOKU, "判読図2024");
+    window.overlayControl.addOverlay(layerHANDOKU, "判読図2024");
 
-    // ★ 凡例
     const legend = createHandokuLegend(styleJson);
 
-    // ON → 凡例表示
     map.on("overlayadd", e => {
       if (e.name === "判読図2024") {
         legend.getContainer().style.display = "block";
       }
     });
 
-    // OFF → 凡例非表示
     map.on("overlayremove", e => {
       if (e.name === "判読図2024") {
         legend.getContainer().style.display = "none";
