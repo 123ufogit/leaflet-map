@@ -135,24 +135,27 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
         legend.getContainer().style.display = "none";
       }
     });
+
+    /* ============================================================
+       ★ 判読図クリック → 共通ダウンロードページを表示
+       ============================================================ */
+    layerHANDOKU.on("click", function (e) {
+
+      const url = "https://www.geospatial.jp/ckan/dataset/rinya-handoku-2024";
+
+      const popupHtml = `
+        <div style="font-size:14px;">
+          <b>判読図2024</b><br>
+          <a href="${url}" target="_blank" style="color:#0066cc;">
+            判読図2024のダウンロードページを開く
+          </a>
+        </div>
+      `;
+
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(popupHtml)
+        .openOn(map);
+    });
+
   });
-
-// ★ 判読図クリック → 共通ダウンロードページを表示
-layerHANDOKU.on("click", function (e) {
-
-  const url = "https://www.geospatial.jp/ckan/dataset/rinya-handoku-2024";
-
-  const popupHtml = `
-    <div style="font-size:14px;">
-      <b>判読図2024</b><br>
-      <a href="${url}" target="_blank" style="color:#0066cc;">
-        判読図2024のダウンロードページを開く
-      </a>
-    </div>
-  `;
-
-  L.popup()
-    .setLatLng(e.latlng)
-    .setContent(popupHtml)
-    .openOn(map);
-});
