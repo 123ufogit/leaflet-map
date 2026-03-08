@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Leaflet EXP 0.1 県営林管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css">
+
+  <!-- Pannellum -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2c3e50">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="label.css">
+  <link rel="stylesheet" href="photo.css">
+
+  <style>
+.area-label {
+  pointer-events: none !important;
+}
+    .legend {
+  background: white;
+  padding: 8px;
+  border: 1px solid #666;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.legend-toggle {
+  background: #444;
+  color: white;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  display: inline-block;
+}
+</style>
+
+</head>
+<body>
+  <div id="header">
+    <button id="menuBtn" class="mobile-only">≡</button>
+    Leaflet EXP 0.1 県営林管理
+  </div>
+  <div id="container">
+
+    <!-- サイドバー -->
+    <div id="sidebar">
+      <div class="tab-buttons">
+        <div id="tabAttr" class="active">属性情報</div>
+        <div id="tabPhoto">写真管理</div>
+      </div>
+      <div id="attrPanel" class="tab-content active">
+      <div id="attrContent"></div>
+      </div>
+      <div id="photoPanel" class="tab-content">
+        <input type="file" id="photoInput" accept="image/jpeg" multiple><br><br>
+        <div id="photoList"></div>
+      </div>
+    </div>
+
+        <!-- 地図 -->
+    <div id="map">
+　    <button id="locateBtn" class="locate-btn"></button>
+      <div id="coordBox">Lat: ---, Lng: ---</div>
+    </div>
+  </div>
+
+  <!-- JSライブラリ（順番厳守） -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pannellum/build/pannellum.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://unpkg.com/leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js"></script>
+
+  <!-- ★ 初期表示レイヤー設定-->
+<script>
+  window.defaultBaseLayer = "gsi";      // ベースレイヤー
+  window.defaultOverlayCS = false;       // CS立体図（透過）を初期表示で OFF
+</script>
+
+<!-- 既存ロジック（地図 → 統計 → 写真） -->
+<script src="map.js"></script>
+<script src="rasterLayers.js"></script>      <!-- ラスタ -->
+<script src="treespecies.js"></script>  <!-- 樹種2024 -->
+<script src="handoku.js"></script>      <!-- 判読図 -->
+<script src="mesh7.js"></script>
+  
+<script>
+ if ("serviceWorker" in navigator) {
+   navigator.serviceWorker.register("service-worker.js");
+ }
+</script>  
+</body>
+</html>
