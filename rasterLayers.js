@@ -53,7 +53,7 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
 });
 
 /* ============================================================
-   地形変化量 T-RGB → 赤〜透明〜青 の 2色スケール加工
+   地形変化量 T-RGB → 赤〜透明〜青（-1〜1 は完全透明）
    ============================================================ */
 L.TileLayer.HenkaRB = L.TileLayer.extend({
   createTile: function (coords, done) {
@@ -83,22 +83,25 @@ L.TileLayer.HenkaRB = L.TileLayer.extend({
 
         let r = 0, g = 0, b = 0, a = 255;
 
-        if (v < 0) {
-          // -20（赤）→ 0（透明）
-          const t = (v + 20) / 20;
+        // ★ -1〜1 は完全透明
+        if (v >= -1 && v <= 1) {
+          a = 0;
+        }
+        else if (v < -1) {
+          // -20（赤）→ -1（透明）
+          const t = (v + 20) / 19; // -20→0, -1→1
           r = 255;
           g = 0;
           b = 0;
           a = Math.floor(t * 255);
-        } else if (v > 0) {
-          // 0（透明）→ +20（青）
-          const t = v / 20;
+        }
+        else if (v > 1) {
+          // 1（透明）→ +20（青）
+          const t = (v - 1) / 19; // 1→0, 20→1
           r = 0;
           g = 0;
           b = 255;
           a = Math.floor(t * 255);
-        } else {
-          a = 0;
         }
 
         data[i] = r;
