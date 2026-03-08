@@ -20,7 +20,7 @@
 .area-label {
   pointer-events: none !important;
 }
-    .legend {
+.legend {
   background: white;
   padding: 8px;
   border: 1px solid #666;
@@ -28,7 +28,6 @@
   max-height: 300px;
   overflow-y: auto;
 }
-
 .legend-toggle {
   background: #444;
   color: white;
@@ -39,7 +38,27 @@
   margin-bottom: 4px;
   display: inline-block;
 }
-</style>
+
+/* ★ フッターリンク（クレジット） */
+#credit-link {
+  position: fixed;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(255,255,255,0.85);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 9999;
+  box-shadow: 0 0 4px rgba(0,0,0,0.2);
+}
+#credit-link a {
+  color: #0066cc;
+  text-decoration: none;
+}
+#credit-link a:hover {
+  text-decoration: underline;
+}
+  </style>
 
 </head>
 <body>
@@ -49,10 +68,15 @@
   </div>
   <div id="container">
 
-        <!-- 地図 -->
+    <!-- 地図 -->
     <div id="map">
-　    <button id="locateBtn" class="locate-btn"></button>
+      <button id="locateBtn" class="locate-btn"></button>
     </div>
+  </div>
+
+  <!-- ★ フッターリンク（クレジットページへ） -->
+  <div id="credit-link">
+    <a href="credit.html" target="_blank">データ出典・利用規約</a>
   </div>
 
   <!-- JSライブラリ（順番厳守） -->
@@ -64,7 +88,7 @@
   <!-- ★ 初期表示レイヤー設定-->
 <script>
   window.defaultBaseLayer = "gsi";      // ベースレイヤー
-  window.defaultOverlayCS = false;       // CS立体図（透過）を初期表示で OFF
+  window.defaultOverlayCS = false;      // CS立体図（透過）を初期表示で OFF
 </script>
   
 <script>
@@ -138,8 +162,8 @@ window.layerControl = L.control.layers(
 
   <!-- 既存ロジック（地図 → 統計 → 写真） -->
 <script src="rasterLayers.js"></script>      <!-- ラスタ -->
-<script src="treespecies.js"></script>  <!-- 樹種2024 -->
-<script src="handoku.js"></script>      <!-- 判読図 -->
+<script src="treespecies.js"></script>       <!-- 樹種2024 -->
+<script src="handoku.js"></script>           <!-- 判読図 -->
 <script src="mesh7.js"></script>
 
 </body>
