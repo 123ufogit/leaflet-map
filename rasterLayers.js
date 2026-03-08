@@ -108,5 +108,4 @@ window.overlayControl.addOverlay(layerDCHMPNG, "DCHM PNG");
 window.overlayControl.addOverlay(layerhenkaPNG, "地形変化量 PNG");
 window.overlayControl.addOverlay(layerhenkaTRGB, "地形変化量 T-RGB");
 window.overlayControl.addOverlay(layerDCHMGray, "DCHM グレースケール加工*");
-window.overlayControl.addOverlay(layerhenkaTRGB, "地形変化量 T-RGB");
 window.overlayControl.addOverlay(layerORTHO2024, "簡易オルソ");
