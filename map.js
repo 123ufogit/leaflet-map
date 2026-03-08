@@ -125,7 +125,6 @@ window.layerControl = L.control.layers(
   { position: "topright" }
 ).addTo(map);
 
-// ★ 初期オーバーレイはここで追加
 layerControl.addOverlay(layerCSmap50, "CS立体図（透過50%）");
 
 /* ===== MiniMap ===== */
