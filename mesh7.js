@@ -1,5 +1,8 @@
 /* ============================================================
    7系メッシュインデックス（枠＋ラベルを1レイヤで制御）
+   - 枠線はクリック不可
+   - ラベルをクリックするとポップアップ表示
+   - リンク先：令和6年能登半島地震関連データポータル（CKAN）
    ============================================================ */
 
 fetch("data/7kei_mesh_index.geojson")
@@ -9,23 +12,28 @@ fetch("data/7kei_mesh_index.geojson")
     // LayerGroup（枠線＋ラベルをまとめる）
     const mesh7Group = L.layerGroup();
 
-    /* --- 1. 図郭枠（灰色） --- */
+    /* --- 1. 図郭枠（灰色・クリック不可） --- */
     const mesh7LineLayer = L.geoJSON(json, {
       style: {
-        color: "#888888",   // 灰色
+        color: "#888888",
         weight: 1,
         fill: false
       },
-      onEachFeature: function (feature, layer) {
+      interactive: false   // ★ 枠線はクリック不可
+    }).addTo(mesh7Group);
 
-        // 図郭名
-        const name = feature.properties["図郭名"] || "図郭";
+    /* --- 2. 図郭名ラベル（灰色文字・クリックでポップアップ） --- */
+    L.geoJSON(json, {
+      onEachFeature: function (feature) {
 
-        // ポップアップ内容
+        const label = feature.properties["図郭名"];
+        if (!label) return;
+
+        // ポップアップ内容（リンク先変更済み）
         const popupHtml = `
           <div style="font-size:14px;">
-            <b>${name}</b><br>
-            <a href="https://www.maff.go.jp/j/press/kanbo/bunsyo/240207.html"
+            <b>${label}</b><br>
+            <a href="https://www.geospatial.jp/ckan/dataset/rinya-noto-portal"
                target="_blank"
                style="color:#0066cc;">
                令和6年能登半島地震関連データポータル
@@ -33,28 +41,24 @@ fetch("data/7kei_mesh_index.geojson")
           </div>
         `;
 
-        layer.bindPopup(popupHtml);
-      }
-    }).addTo(mesh7Group);
-
-    /* --- 2. 図郭名ラベル（灰色文字） --- */
-    L.geoJSON(json, {
-      onEachFeature: function (feature) {
-        const label = feature.properties["図郭名"];
-        if (!label) return;
-
-        // MultiPolygon の重心を計算
+        // MultiPolygon の重心
         const center = turf.center(feature).geometry.coordinates;
         const latlng = L.latLng(center[1], center[0]);
 
-        L.marker(latlng, {
+        // ラベル（クリック可能）
+        const marker = L.marker(latlng, {
           icon: L.divIcon({
             className: "mesh7-label",
-            html: `<span style="color:#666666; font-size:12px;">${label}</span>`,
+            html: `<span style="color:#666666; font-size:12px; pointer-events:auto;">${label}</span>`,
             iconSize: [0, 0],
             iconAnchor: [0, 0]
           })
-        }).addTo(mesh7Group);
+        });
+
+        // ★ ラベルクリックでポップアップ
+        marker.bindPopup(popupHtml);
+
+        marker.addTo(mesh7Group);
       }
     });
 
