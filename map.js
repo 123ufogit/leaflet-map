@@ -114,20 +114,19 @@ setTimeout(() => {
 }, 200);
 
 /* ===== レイヤーコントロール ===== */
-const baseLayers = {
-  "地理院地図（標準）": layerGSIstd,
-  "OpenStreetMap": layerOSM,
-  "地理院空中写真": layerGSIort,
-  "林野庁・簡易オルソ2024": layerORTHO2024
-};
+window.layerControl = L.control.layers(
+  {
+    "地理院地図（標準）": layerGSIstd,
+    "OpenStreetMap": layerOSM,
+    "地理院空中写真": layerGSIort,
+    "林野庁・簡易オルソ2024": layerORTHO2024
+  },
+  {},   // ★ オーバーレイは空で作る
+  { position: "topright" }
+).addTo(map);
 
-const overlayLayers = {
-  "CS立体図（透過50%）": layerCSmap50
-};
-
-window.layerControl = L.control.layers(baseLayers, overlayLayers, {
-  position: "topright"
-}).addTo(map);
+// ★ 初期オーバーレイはここで追加
+layerControl.addOverlay(layerCSmap50, "CS立体図（透過50%）");
 
 /* ===== MiniMap ===== */
 const miniLayer = L.tileLayer(
