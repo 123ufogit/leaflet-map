@@ -147,7 +147,7 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
         <div style="font-size:14px;">
           <b>判読図2024</b><br>
           <a href="${url}" target="_blank" style="color:#0066cc;">
-            判読図2024のダウンロードページを開く
+            ダウンロードページを開く
           </a>
         </div>
       `;
