@@ -51,6 +51,7 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/style.j
     );
 
     layerControl.addOverlay(layerTREESP2024, "樹種2024（ベクタタイル）");
+    layerControl._update();
 
     const legend = createTreeSpeciesLegend(styleMap);
 
