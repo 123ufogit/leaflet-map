@@ -120,3 +120,64 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/style.j
       }
     });
   });
+
+/* ============================================================
+   樹種2024レイヤ本体（★ window に公開）
+   ============================================================ */
+
+fetch("https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/style.json")
+  .then(res => res.json())
+  .then(styleJson => {
+    const vectorStyle = createTreeSpeciesVectorStyle(styleJson);
+
+    window.layerTREESP2024 = L.vectorGrid.protobuf(
+      "https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/{z}/{x}/{y}.pbf",
+      {
+        vectorTileLayerStyles: {
+          "樹種ポリゴン": vectorStyle
+        },
+        maxZoom: 30,
+        minZoom: 8,
+        interactive: true
+      }
+    );
+
+    window.overlayControl.addOverlay(window.layerTREESP2024, "樹種2024");
+
+    const legend = createTreeSpeciesLegend(styleJson);
+
+    map.on("overlayadd", e => {
+      if (e.name === "樹種2024") {
+        legend.getContainer().style.display = "block";
+      }
+    });
+
+    map.on("overlayremove", e => {
+      if (e.name === "樹種2024") {
+        legend.getContainer().style.display = "none";
+      }
+    });
+
+    /* ============================================================
+       ★ 樹種2024クリック → 共通ダウンロードページを表示
+       ============================================================ */
+    window.layerTREESP2024.on("click", function (e) {
+
+      const url = "https://www.geospatial.jp/ckan/dataset/rinya-treespecies-noto2024";
+
+      const popupHtml = `
+        <div style="font-size:14px;">
+          <b>樹種2024</b><br>
+          <a href="${url}" target="_blank" style="color:#0066cc;">
+            ダウンロードページを開く
+          </a>
+        </div>
+      `;
+
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(popupHtml)
+        .openOn(map);
+    });
+
+  });
