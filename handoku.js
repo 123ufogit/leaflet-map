@@ -53,6 +53,7 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
     );
 
     layerControl.addOverlay(layerHANDOKU, "判読図（ベクタタイル）");
+    layerControl._update();
 
     const legend = createHandokuLegend(styleJson);
 
