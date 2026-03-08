@@ -1,8 +1,6 @@
 /* ============================================================
    DCHM / 地形変化量 / 樹高グレースケール（共通 overlayControl 利用）
    ============================================================ */
-
-// ★ 左下レイヤコントロールが無ければ作成
 if (!window.overlayControl) {
   window.overlayControl = L.control.layers({}, {}, { position: "bottomleft" });
   window.overlayControl.addTo(map);
@@ -53,6 +51,22 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
 /* ============================================================
    ラスターレイヤー
    ============================================================ */
+const layerDEMPNG = L.tileLayer(
+  "https://rinya-tiles.geospatial.jp/dem_r06eq_2025/{z}/{x}/{y}.png",
+  { attribution: "林野庁・DEM（PNG）", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
+);
+
+const layerDEMTRGB = L.tileLayer(
+  "https://rinya-tiles.geospatial.jp/terrainRGB_r06eq_2025/{z}/{x}/{y}.png",
+  { attribution: "林野庁・DEM（T-RGB）", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
+);
+
+const layerCSMap = L.tileLayer(
+  "https://rinya-tiles.geospatial.jp/csmap_r06eq_2025/{z}/{x}/{y}.webp",
+  { attribution: "林野庁・CS立体図", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
+);
+
+
 const layerDCHMTRGB = L.tileLayer(
   "https://forestgeo.info/opendata/17_ishikawa/noto/dchm_terrainRGB_2024/{z}/{x}/{y}.png",
   { attribution: "林野庁・DCHM（T-RGB）", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
@@ -63,6 +77,12 @@ const layerDCHMPNG = L.tileLayer(
   { attribution: "林野庁・DCHM（PNG）", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
 );
 
+const layerhenkaPNG = L.tileLayer(
+  "https://forestgeo.info/opendata/17_ishikawa/noto/henka_2024/{z}/{x}/{y}.png",
+  { attribution: "林野庁・地形変化量データ(PNG)", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
+);
+
+
 const layerhenkaTRGB = L.tileLayer(
   "https://forestgeo.info/opendata/17_ishikawa/noto/henka_terrainRGB_2024/{z}/{x}/{y}.png",
   { attribution: "林野庁・地形変化量データ(T-RGB)", maxZoom: 30, maxNativeZoom: 18, opacity: 0.5 }
@@ -70,13 +90,15 @@ const layerhenkaTRGB = L.tileLayer(
 
 const layerDCHMGray = new L.TileLayer.TerrainGray(
   "https://forestgeo.info/opendata/17_ishikawa/noto/dchm_terrainRGB_2024/{z}/{x}/{y}.png",
-  { attribution: "DCHM 樹高グレースケール", maxZoom: 30, maxNativeZoom: 18, opacity: 0.8 }
+  { attribution: "DCHM グレースケール加工", maxZoom: 30, maxNativeZoom: 18, opacity: 0.8 }
 );
 
 /* ============================================================
    ★ 共通 overlayControl に追加（左下）
    ============================================================ */
+window.overlayControl.addOverlay(layerDEMPNG, "DEM PNG");
+window.overlayControl.addOverlay(layerDEMTRGB, "DEM T-RGB");
 window.overlayControl.addOverlay(layerDCHMTRGB, "DCHM T-RGB");
 window.overlayControl.addOverlay(layerDCHMPNG, "DCHM PNG");
-window.overlayControl.addOverlay(layerDCHMGray, "DCHM 樹高グレースケール");
 window.overlayControl.addOverlay(layerhenkaTRGB, "地形変化量 T-RGB");
+window.overlayControl.addOverlay(layerDCHMGray, "DCHM グレースケール加工*");
