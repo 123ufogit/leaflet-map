@@ -80,5 +80,5 @@ window.overlayControl.addOverlay(L.layerGroup(), "<b style='color:#333;'>元の�
 window.overlayControl.addOverlay(layerDCHMTRGB, "DCHM T-RGB");
 window.overlayControl.addOverlay(layerDCHMPNG, "DCHM PNG");
 window.overlayControl.addOverlay(layerhenkaTRGB, "地形変化量 T-RGB");
-overlayControl.addOverlay(L.layerGroup(), "<hr style='margin:4px 0;'>");
+window.overlayControl.addOverlay(L.layerGroup(), "<hr style='margin:4px 0;'>");
 window.overlayControl.addOverlay(layerDCHMGray, "DCHM 樹高グレースケール");
