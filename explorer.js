@@ -22,7 +22,6 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
         const B = data[i + 2];
 
         const elevation = (R * 256 * 256 + G * 256 + B) * 0.1 - 10000;
-
         const min = 0;
         const max = 50;
         let gray = (elevation - min) / (max - min) * 255;
@@ -41,7 +40,6 @@ L.TileLayer.TerrainGray = L.TileLayer.extend({
     return tile;
   }
 });
-
 
 /* ============================================================
    ラスターレイヤー
@@ -86,7 +84,6 @@ const layerDCHMGray = new L.TileLayer.TerrainGray(
   }
 );
 
-
 /* ============================================================
    レイヤコントロール（VectorGrid は後で追加）
    ============================================================ */
@@ -101,6 +98,23 @@ const layerControl = L.control.layers(
   { position: "bottomleft" }
 ).addTo(map);
 
+map.on("overlayadd", function (e) {
+  if (e.name === "判読図（ベクタタイル）" && handokuLegendControl) {
+    handokuLegendControl.getContainer().style.display = "block";
+  }
+  if (e.name === "樹種2024（ベクタタイル）" && treeLegendControl) {
+    treeLegendControl.getContainer().style.display = "block";
+  }
+});
+
+map.on("overlayremove", function (e) {
+  if (e.name === "判読図（ベクタタイル）" && handokuLegendControl) {
+    handokuLegendControl.getContainer().style.display = "none";
+  }
+  if (e.name === "樹種2024（ベクタタイル）" && treeLegendControl) {
+    treeLegendControl.getContainer().style.display = "none";
+  }
+});
 
 /* ============================================================
    共通：style.json → VectorGrid スタイル変換（判読図）
@@ -116,7 +130,7 @@ function convertStyleJsonToVectorGridStyles(styleJson) {
       styles[id] = {
         fill: true,
         fillColor: layer.paint["fill-color"] ?? "#888",
-        fillOpacity: layer.paint["fill-opacity"] ?? 0.8,
+        fillOpacity: layer.paint["fill-opacity"] ?? 0.5,
         stroke: false
       };
     }
@@ -125,8 +139,8 @@ function convertStyleJsonToVectorGridStyles(styleJson) {
       styles[id] = {
         stroke: true,
         color: layer.paint["line-color"] ?? "#000",
-        weight: layer.paint["line-width"] ?? 1,
-        opacity: layer.paint["line-opacity"] ?? 1
+        weight: layer.paint["line-width"] ?? 0.1,
+        opacity: layer.paint["line-opacity"] ?? 0.8
       };
     }
 
@@ -146,65 +160,52 @@ function convertStyleJsonToVectorGridStyles(styleJson) {
   return styles;
 }
 
-
 /* ============================================================
    判読図 凡例
    ============================================================ */
-function createHandokuLegend(styleJson) {
-  const legend = L.control({ position: "bottomright" });
+let handokuLegendControl = null;
 
-  legend.onAdd = function () {
-    const div = L.DomUtil.create("div", "legend");
-    div.innerHTML = "<strong>判読図 凡例</strong><br>";
+function createHandokuLegend(styleJson) {
+  if (handokuLegendControl) return;
+
+  handokuLegendControl = L.control({ position: "bottomright" });
+
+  handokuLegendControl.onAdd = function () {
+    let html = "";
 
     styleJson.layers.forEach(layer => {
-      const name = layer.id;
       const paint = layer.paint;
 
       if (layer.type === "fill") {
-        div.innerHTML += `
+        html += `
           <div><span style="
-            display:inline-block;
-            width:18px;
-            height:18px;
+            display:inline-block;width:18px;height:18px;
             background:${paint["fill-color"]};
             opacity:${paint["fill-opacity"]};
-            border:1px solid #000;
-          "></span> ${name}</div>
-        `;
+            border:1px solid #000;"></span> ${layer.id}</div>`;
       }
 
       if (layer.type === "line") {
-        div.innerHTML += `
+        html += `
           <div><span style="
-            display:inline-block;
-            width:18px;
-            height:3px;
-            background:${paint["line-color"]};
-          "></span> ${name}</div>
-        `;
+            display:inline-block;width:18px;height:3px;
+            background:${paint["line-color"]};"></span> ${layer.id}</div>`;
       }
 
       if (layer.type === "circle") {
-        div.innerHTML += `
+        html += `
           <div><span style="
-            display:inline-block;
-            width:12px;
-            height:12px;
+            display:inline-block;width:12px;height:12px;
             background:${paint["circle-stroke-color"]};
-            border-radius:50%;
-            border:1px solid #000;
-          "></span> ${name}</div>
-        `;
+            border-radius:50%;border:1px solid #000;"></span> ${layer.id}</div>`;
       }
     });
 
-    return div;
+    return makeCollapsibleLegend("判読図 凡例", html);
   };
 
-  legend.addTo(map);
+  handokuLegendControl.addTo(map);
 }
-
 
 /* ============================================================
    判読図（PBF + style.json）
@@ -230,7 +231,6 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/handoku_2024/style.json"
     createHandokuLegend(styleJson);
   });
 
-
 /* ============================================================
    樹種ポリゴン：style.json → 樹種別カラー辞書
    ============================================================ */
@@ -254,7 +254,6 @@ function buildTreeSpeciesStyleMap(styleJson) {
 
   return mapSpecies;
 }
-
 
 /* ============================================================
    樹種ポリゴン：VectorGrid スタイル関数
@@ -283,41 +282,35 @@ function createTreeSpeciesVectorStyle(styleMap) {
   };
 }
 
-
 /* ============================================================
    樹種ポリゴン 凡例
    ============================================================ */
-function createTreeSpeciesLegend(styleMap) {
-  const legend = L.control({ position: "bottomright" });
+let treeLegendControl = null;
 
-  legend.onAdd = function () {
-    const div = L.DomUtil.create("div", "legend");
-    div.innerHTML = "<strong>樹種ポリゴン 凡例</strong><br>";
+function createTreeSpeciesLegend(styleMap) {
+  if (treeLegendControl) return;
+
+  treeLegendControl = L.control({ position: "bottomright" });
+
+  treeLegendControl.onAdd = function () {
+    let html = "";
 
     Object.keys(styleMap).forEach(key => {
       const item = styleMap[key];
 
-      div.innerHTML += `
-        <div>
-          <span style="
-            display:inline-block;
-            width:18px;
-            height:18px;
-            background:${item.color};
-            opacity:${item.opacity};
-            border:1px solid #000;
-          "></span>
-          ${item.label}
-        </div>
-      `;
+      html += `
+        <div><span style="
+          display:inline-block;width:18px;height:18px;
+          background:${item.color};
+          opacity:${item.opacity};
+          border:1px solid #000;"></span> ${item.label}</div>`;
     });
 
-    return div;
+    return makeCollapsibleLegend("樹種ポリゴン 凡例", html);
   };
 
-  legend.addTo(map);
+  treeLegendControl.addTo(map);
 }
-
 
 /* ============================================================
    樹種2024（PBF + style.json）
@@ -327,20 +320,84 @@ fetch("https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/style.j
   .then(styleJson => {
     const styleMap = buildTreeSpeciesStyleMap(styleJson);
 
-    const layerTREESP2024 = L.vectorGrid.protobuf(
-      "https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/{z}/{x}/{y}.pbf",
-      {
-        vectorTileLayerStyles: {
-          "樹種ポリゴン": createTreeSpeciesVectorStyle(styleMap)
-        },
-        maxZoom: 30,
-        minZoom: 8,
-        maxNativeZoom: 18,
-        interactive: true
+   const layerTREESP2024 = L.vectorGrid.protobuf(
+  "https://forestgeo.info/opendata/17_ishikawa/noto/treespecies_2024/{z}/{x}/{y}.pbf",
+  {
+    vectorTileLayerStyles: {
+      "樹種ポリゴン": (props, zoom) => {
+        const species = props["解析樹種"] || props["樹種"];
+        if (species && styleMap[species]) {
+          return {
+            fill: true,
+            fillColor: styleMap[species].color,
+            fillOpacity: 0.5,   // ★ 透過度 50%
+            stroke: false
+          };
+        }
+        return {
+          fill: true,
+          fillColor: "#cccccc",
+          fillOpacity: 0.5,
+          stroke: false
+        };
       }
-    );
+    },
+    maxZoom: 30,
+    minZoom: 8,
+    maxNativeZoom: 18,
+    interactive: true
+  }
+);
 
     layerControl.addOverlay(layerTREESP2024, "樹種2024（ベクタタイル）");
 
     createTreeSpeciesLegend(styleMap);
   });
+
+/* ============================================================
+   折りたたみ式凡例（共通関数）
+   ============================================================ */
+function makeCollapsibleLegend(title, contentHtml) {
+  const container = L.DomUtil.create("div", "legend");
+
+  const toggle = L.DomUtil.create("div", "legend-toggle", container);
+  toggle.innerHTML = title;
+
+  const content = L.DomUtil.create("div", "", container);
+  content.innerHTML = contentHtml;
+
+  let visible = true;
+  toggle.onclick = () => {
+    visible = !visible;
+    content.style.display = visible ? "block" : "none";
+  };
+
+  return container;
+}
+
+/* ============================================================
+   全国森林資源メッシュ（20m）ベクトルタイル
+   ============================================================ */
+const mesh20mStyle = {
+     "fr_mesh20m": function () {
+    return {
+      stroke: true,
+      color: "#888888",   // ★ 細い灰色の線
+      weight: 0.1,        // ★ 線の太さ
+      fill: false         // ★ 塗りつぶしなし
+    };
+  }
+};
+
+const layerMesh20m = L.vectorGrid.protobuf(
+  "https://rinya-tiles.geospatial.jp/fr_mesh20m_pbf_2025/{z}/{x}/{y}.pbf",
+  {
+    vectorTileLayerStyles: mesh20mStyle,
+    maxZoom: 30,
+    minZoom: 8,
+    maxNativeZoom: 18,
+    interactive: false   // 属性を使わないので OFF
+  }
+);
+
+layerControl.addOverlay(layerMesh20m, "森林資源メッシュ20m（枠線のみ）");
