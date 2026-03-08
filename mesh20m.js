@@ -16,9 +16,8 @@ const layerMesh20m = L.vectorGrid.protobuf(
     vectorTileLayerStyles: mesh20mStyle,
     maxZoom: 30,
     minZoom: 8,
-    maxNativeZoom: 18,
     interactive: false
   }
 );
 
-layerControl.addOverlay(layerMesh20m, "森林資源メッシュ20m（枠線のみ）");
+layerControl.addOverlay(layerMesh20m, "森林資源メッシュ20m");
