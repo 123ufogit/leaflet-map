@@ -1,10 +1,13 @@
 /* ============================================================
-   7系メッシュインデックス（GeoJSON 読み込み + ラベル表示）
+   7系メッシュインデックス（枠＋ラベルを1レイヤで制御）
    ============================================================ */
 
 fetch("data/7kei_mesh_index.geojson")
   .then(res => res.json())
   .then(json => {
+
+    // LayerGroup（枠線＋ラベルをまとめる）
+    const mesh7Group = L.layerGroup();
 
     /* --- 1. 図郭枠（灰色） --- */
     const mesh7LineLayer = L.geoJSON(json, {
@@ -13,11 +16,11 @@ fetch("data/7kei_mesh_index.geojson")
         weight: 1,
         fill: false
       }
-    });
+    }).addTo(mesh7Group);
 
     /* --- 2. 図郭名ラベル（灰色文字） --- */
-    const mesh7LabelLayer = L.geoJSON(json, {
-      onEachFeature: function (feature, layer) {
+    L.geoJSON(json, {
+      onEachFeature: function (feature) {
         const label = feature.properties["図郭名"];
         if (!label) return;
 
@@ -32,20 +35,18 @@ fetch("data/7kei_mesh_index.geojson")
             iconSize: [0, 0],
             iconAnchor: [0, 0]
           })
-        }).addTo(mesh7LabelLayer);
+        }).addTo(mesh7Group);
       }
     });
 
-    /* --- 3. overlayControl に登録 --- */
+    /* --- 3. overlayControl に登録（1レイヤだけ） --- */
     if (window.overlayControl) {
-      window.overlayControl.addOverlay(mesh7LineLayer, "7系メッシュ（枠）");
-      window.overlayControl.addOverlay(mesh7LabelLayer, "7系メッシュ（ラベル）");
+      window.overlayControl.addOverlay(mesh7Group, "7系メッシュ");
     }
 
     /* --- 4. 初期表示（必要なら） --- */
-    mesh7LineLayer.addTo(map);
-    mesh7LabelLayer.addTo(map);
+    mesh7Group.addTo(map);
 
-    console.log("7系メッシュインデックス（枠＋ラベル）を読み込みました");
+    console.log("7系メッシュ（枠＋ラベル）を読み込みました");
   })
   .catch(err => console.error("7系メッシュ読み込みエラー:", err));
