@@ -88,7 +88,7 @@ function createTreeSpeciesVectorStyle(styleJson) {
     return {
       fill: true,
       fillColor: entry.color,
-      fillOpacity: entry.opacity,
+      fillOpacity: 0.5,
       stroke: false
     };
   };
