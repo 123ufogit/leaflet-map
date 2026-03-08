@@ -78,5 +78,5 @@ const layerDCHMGray = new L.TileLayer.TerrainGray(
    ============================================================ */
 window.overlayControl.addOverlay(layerDCHMTRGB, "DCHM T-RGB");
 window.overlayControl.addOverlay(layerDCHMPNG, "DCHM PNG");
-window.overlayControl.addOverlay(layerDCHMGray, "DCHM 樹高グレースケール");
 window.overlayControl.addOverlay(layerhenkaTRGB, "地形変化量 T-RGB");
+window.overlayControl.addOverlay(layerDCHMGray, "DCHM 樹高グレースケール");
