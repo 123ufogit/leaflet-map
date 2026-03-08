@@ -1,6 +1,12 @@
 /* ============================================================
-   地図初期化（map.js で map が作られている前提）
+   DCHM / 地形変化量 / 樹高グレースケール（共通 overlayControl 利用）
    ============================================================ */
+
+// ★ 左下レイヤコントロールが無ければ作成
+if (!window.overlayControl) {
+  window.overlayControl = L.control.layers({}, {}, { position: "bottomleft" });
+  window.overlayControl.addTo(map);
+}
 
 /* ============================================================
    Terrain-RGB → 樹高グレースケール変換レイヤー
@@ -68,15 +74,9 @@ const layerDCHMGray = new L.TileLayer.TerrainGray(
 );
 
 /* ============================================================
-   layerControl（全レイヤー共通）
+   ★ 共通 overlayControl に追加（左下）
    ============================================================ */
-window.layerControl = L.control.layers(
-  null,
-  {
-    "DCHM T-RGB": layerDCHMTRGB,
-    "DCHM PNG": layerDCHMPNG,
-    "DCHM 樹高グレースケール": layerDCHMGray,
-    "地形変化量 T-RGB": layerhenkaTRGB
-  },
-  { position: "bottomleft" }
-).addTo(map);
+window.overlayControl.addOverlay(layerDCHMTRGB, "DCHM T-RGB");
+window.overlayControl.addOverlay(layerDCHMPNG, "DCHM PNG");
+window.overlayControl.addOverlay(layerDCHMGray, "DCHM 樹高グレースケール");
+window.overlayControl.addOverlay(layerhenkaTRGB, "地形変化量 T-RGB");
