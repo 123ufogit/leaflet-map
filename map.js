@@ -114,17 +114,20 @@ setTimeout(() => {
 }, 200);
 
 /* ===== レイヤーコントロール ===== */
-L.control.layers(
-  {
-    "地理院地図（標準）": layerGSIstd,
-    "OpenStreetMap": layerOSM,
-    "地理院空中写真": layerGSIort,
-    "林野庁・簡易オルソ2024": layerORTHO2024
-  },
-  {
-    "CS立体図（透過50%）": layerCSmap50
-  }
-).addTo(map);
+const baseLayers = {
+  "地理院地図（標準）": layerGSIstd,
+  "OpenStreetMap": layerOSM,
+  "地理院空中写真": layerGSIort,
+  "林野庁・簡易オルソ2024": layerORTHO2024
+};
+
+const overlayLayers = {
+  "CS立体図（透過50%）": layerCSmap50
+};
+
+window.layerControl = L.control.layers(baseLayers, overlayLayers, {
+  position: "topright"
+}).addTo(map);
 
 /* ===== MiniMap ===== */
 const miniLayer = L.tileLayer(
