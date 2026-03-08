@@ -50,6 +50,7 @@ const layerMesh20m = L.vectorGrid.protobuf(
     interactive: true   // ★ 属性取得には true が必須
   }
 );
+layerMesh20m.addTo(map);
 
 // ★ 共通 overlayControl に追加
 window.overlayControl.addOverlay(layerMesh20m, "森林資源メッシュ20m");
