@@ -2,7 +2,7 @@
    7系メッシュインデックス（枠＋ラベルを1レイヤで制御）
    - 枠線はクリック不可
    - ラベルをクリックするとポップアップ表示
-   - リンク先：令和6年能登半島地震関連データポータル（CKAN）
+   - クリックした図郭名を使って G空間情報の検索ページへリンク
    ============================================================ */
 
 fetch("data/7kei_mesh_index.geojson")
@@ -19,24 +19,26 @@ fetch("data/7kei_mesh_index.geojson")
         weight: 1,
         fill: false
       },
-      interactive: false   // ★ 枠線はクリック不可
+      interactive: false
     }).addTo(mesh7Group);
 
-    /* --- 2. 図郭名ラベル（灰色文字・クリックでポップアップ） --- */
+    /* --- 2. 図郭名ラベル（クリックでポップアップ） --- */
     L.geoJSON(json, {
       onEachFeature: function (feature) {
 
         const label = feature.properties["図郭名"];
         if (!label) return;
 
-        // ポップアップ内容（リンク先変更済み）
+        // ★ クリックした図郭名を URL に埋め込む
+        const url = `https://www.geospatial.jp/ckan/dataset/?q=${label}&sort=metadata_modified+desc&ext_rows=20`;
+
         const popupHtml = `
           <div style="font-size:14px;">
             <b>${label}</b><br>
-            <a href="https://www.geospatial.jp/ckan/dataset/rinya-noto-portal"
+            <a href="${url}"
                target="_blank"
                style="color:#0066cc;">
-               令和6年能登半島地震関連データポータル
+               このメッシュの関連データセットを表示
             </a>
           </div>
         `;
@@ -70,6 +72,6 @@ fetch("data/7kei_mesh_index.geojson")
     /* --- 4. 初期表示 --- */
     mesh7Group.addTo(map);
 
-    console.log("7系メッシュ（枠＋ラベル＋ポップアップ）を読み込みました");
+    console.log("7系メッシュ（動的リンク対応）を読み込みました");
   })
   .catch(err => console.error("7系メッシュ読み込みエラー:", err));
