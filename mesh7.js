@@ -5,6 +5,12 @@
    - クリックした図郭名を使って G空間情報の検索ページへリンク
    ============================================================ */
 
+// ★ 左下レイヤコントロールが無ければ作成
+if (!window.overlayControl) {
+  window.overlayControl = L.control.layers({}, {}, { position: "bottomleft" });
+  window.overlayControl.addTo(map);
+}
+
 fetch("data/7kei_mesh_index.geojson")
   .then(res => res.json())
   .then(json => {
