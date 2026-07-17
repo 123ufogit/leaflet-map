@@ -25,7 +25,7 @@ const layerGSIstd = L.tileLayer(
   );
 
 const map = L.map("map", {
-  center: [37.303254, 136.915478],
+  center: [36.4324694, 136.6398722],
   zoom: 15,
   maxZoom: 30,
   layers: [layerGSIstd]
